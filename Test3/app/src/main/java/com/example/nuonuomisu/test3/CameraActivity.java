@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 public class CameraActivity extends Activity {
 
@@ -15,11 +14,10 @@ public class CameraActivity extends Activity {
         Button start_recording = findViewById(R.id.button_start);
         start_recording.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                //if (null == savedInstanceState) {
-                    getFragmentManager().beginTransaction()
-                            .replace(R.id.container, Camera2VideoFragment.newInstance())
-                            .commit();
-              //  }
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.container, Camera2VideoFragment.newInstance())
+                    .commit();
+
             }
         });
         Button stream = findViewById(R.id.stream_page);
@@ -28,6 +26,8 @@ public class CameraActivity extends Activity {
                 setContentView(R.layout.live_stream);
             }
         });
+
+
         //Button record = findViewById(R.id.back_record);
         //record.setOnClickListener(new View.OnClickListener() {
          //   public void onClick(View v) {

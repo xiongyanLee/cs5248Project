@@ -588,6 +588,22 @@ public class Camera2VideoFragment extends Fragment
                 mMediaRecorder.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));
                 break;
         }
+
+        mMediaRecorder.setMaxDuration(3 * 1000);
+
+        mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+            @Override
+            public void onInfo(MediaRecorder mr, int what, int extra) {
+                Log.d("ThreeSecond", "Hihihi");
+                if(what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+                    Log.d("ThreeSecond", "3 second now!!!!");
+
+                    stopRecordingVideo2();
+                    startRecordingVideo2();
+                }
+            }
+        });
+
         mMediaRecorder.prepare();
     }
 
@@ -654,6 +670,62 @@ public class Camera2VideoFragment extends Fragment
         }
 
     }
+    private void startRecordingVideo2() {
+
+        try {
+            //closePreviewSession();
+            setUpMediaRecorder();
+            SurfaceTexture texture = mTextureView.getSurfaceTexture();
+            assert texture != null;
+            //texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            List<Surface> surfaces = new ArrayList<>();
+
+            // Set up Surface for the camera preview
+            Surface previewSurface = new Surface(texture);
+            surfaces.add(previewSurface);
+            mPreviewBuilder.addTarget(previewSurface);
+
+            // Set up Surface for the MediaRecorder
+            Surface recorderSurface = mMediaRecorder.getSurface();
+            surfaces.add(recorderSurface);
+
+            mPreviewBuilder.addTarget(recorderSurface);
+
+            // Start a capture session
+            // Once the session starts, we can update the UI and start recording
+            mCameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
+
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                    mPreviewSession = cameraCaptureSession;
+                    updatePreview();
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // UI
+//                            mButtonVideo.setText("stop");
+//                            mIsRecordingVideo = true;
+
+                            // Start recording
+                            mMediaRecorder.start();
+                        }
+                    });
+                }
+
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                    Activity activity = getActivity();
+                    if (null != activity) {
+                        Toast.makeText(activity, "Failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }, mBackgroundHandler);
+        } catch (CameraAccessException | IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     private void closePreviewSession() {
         if (mPreviewSession != null) {
@@ -678,6 +750,12 @@ public class Camera2VideoFragment extends Fragment
         }
         mNextVideoAbsolutePath = null;
         startPreview();
+    }
+
+    private void stopRecordingVideo2(){
+        mMediaRecorder.stop();
+        mMediaRecorder.reset();
+        mNextVideoAbsolutePath = null;
     }
 
     /**
