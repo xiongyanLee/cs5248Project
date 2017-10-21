@@ -7,15 +7,16 @@
     android:background="#255"
     tools:context="com.example.nuonuomisu.test3.CameraActivity">
 
+    <TextView
+        android:id="@+id/textView_string"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:gravity="center"
+        android:textSize="20dp"
+        android:text="This is streaming page" />
 
     <Button
-        android:id="@+id/button_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="start recording" />
-
-    <Button
-        android:id="@+id/record_page"
+        android:id="@+id/back_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="left"
@@ -24,7 +25,7 @@
         android:text="Record" />
 
     <Button
-        android:id="@+id/stream_page"
+        android:id="@+id/stay_stream"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
