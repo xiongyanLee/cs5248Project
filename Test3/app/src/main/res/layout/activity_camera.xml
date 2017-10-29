@@ -7,12 +7,31 @@
     android:background="#255"
     tools:context="com.example.nuonuomisu.test3.CameraActivity">
 
-
+    <ViewFlipper android:id="@+id/myViewFlipper" android:layout_width="match_parent" android:layout_height="match_parent">
+     <RelativeLayout
+         android:id="@+id/record_layout"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent">
     <Button
         android:id="@+id/button_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="start recording" />
+     </RelativeLayout>
+
+     <RelativeLayout
+         android:id="@+id/stream_layout"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent">
+         <TextView
+             android:id="@+id/textView_string"
+             android:layout_width="match_parent"
+             android:layout_height="100dp"
+             android:gravity="center"
+             android:textSize="20dp"
+             android:text="This is streaming page" />
+     </RelativeLayout>
+    </ViewFlipper>
 
     <Button
         android:id="@+id/record_page"
@@ -27,9 +46,9 @@
         android:id="@+id/stream_page"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
         android:layout_gravity="right"
+        android:onClick="playerActivity"
         android:text="Stream" />
-
 </RelativeLayout>
