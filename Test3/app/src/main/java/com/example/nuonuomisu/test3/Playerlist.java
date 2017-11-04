@@ -16,6 +16,11 @@ import android.widget.ListView;
 
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +59,6 @@ public class Playerlist extends AppCompatActivity {
 
     public void updatePlayerList(View view) {
         List video_list = get_video_list();
-
         listItems.add("Clicked : "+clickCounter++);
         listItems.add("Clicked : "+clickCounter++);
         //listItems.remove(0);
@@ -62,6 +66,8 @@ public class Playerlist extends AppCompatActivity {
     }
 
     public List get_video_list(){
+        String response = "";
+        List<String> video_list = new ArrayList<String>();
         try{
             URL url = new URL("http://");
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
@@ -76,10 +82,30 @@ public class Playerlist extends AppCompatActivity {
                     .appendQueryParameter("secondParam", "paramValue2")
                     .appendQueryParameter("thirdParam", "paramValue3");
             String query = builder.build().getEncodedQuery();
+            OutputStream os = conn.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, "UTF-8"));
+            writer.write(query);
+            writer.flush();
+            writer.close();
+            os.close();
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpsURLConnection.HTTP_OK) {
+                String line;
+                BufferedReader br=new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                while ((line=br.readLine()) != null) {
+                    response+=line;
+                }
+            }
+            else {
+                response="";
 
+            }
         } catch (Exception e){
             e.printStackTrace();
         }
+        video_list.add(response);
+        return video_list;
     }
 
     protected ListView getListView() {

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -48,6 +49,8 @@ public class Player extends AppCompatActivity {
         uri = Uri.parse(uri_to_play);
         }
         playerView = (SimpleExoPlayerView) findViewById(R.id.video_view);
+        long bandwidth = BANDWIDTH_METER.getBitrateEstimate();
+        Log.i("Bandwidth measurement", "Current Bandwidth is: " + bandwidth);
     }
 
     @Override
