@@ -16,24 +16,10 @@ public class CameraActivity extends Activity {
         super.onCreate(savedInstanceState);
         final ViewFlipper flipview = (ViewFlipper) findViewById(R.id.myViewFlipper);
         setContentView(R.layout.activity_camera);
-        //flipview.setDisplayedChild(flipview.indexOfChild(findViewById(R.id.record_page)));
+
         Button start_recording = findViewById(R.id.button_start);
-        start_recording.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.container, Camera2VideoFragment.newInstance())
-                    .commit();
-            }
-        });
         Button stream = findViewById(R.id.stream_page);
-        //Button record = findViewById(R.id.back_record);
-        //record.setOnClickListener(new View.OnClickListener() {
-         //   public void onClick(View v) {
-                //setContentView(R.layout.activity_camera);
-                //Toast.makeText(activity, "switch back", Toast.LENGTH_SHORT).show();
-          //  }
-       // });
-        //playerView = (SimpleExoPlayerView) findViewById(R.id.video_view);
+
     }
 
     public void playerlistActivity(View view){
@@ -41,6 +27,10 @@ public class CameraActivity extends Activity {
         startActivity(intent);
     }
 
+    public void recorderActivity(View view){
+        Intent intent  = new Intent(this, Recorder.class);
+        startActivity(intent);
+    }
 
 
 

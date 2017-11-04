@@ -12,11 +12,13 @@
          android:id="@+id/record_layout"
          android:layout_width="match_parent"
          android:layout_height="match_parent">
-    <Button
-        android:id="@+id/button_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="start recording" />
+
+         <Button
+             android:id="@+id/button_start"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:onClick="recorderActivity"
+             android:text="start recording" />
      </RelativeLayout>
 
      <RelativeLayout
