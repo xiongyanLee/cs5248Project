@@ -4,16 +4,16 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#255"
-    tools:context="com.example.nuonuomisu.test3.CameraActivity">
+    android:background="#255">
 
     <TextView
         android:id="@+id/textView_string"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:gravity="center"
-        android:textSize="20dp"
-        android:text="This is streaming page" />
+        android:onClick="playerActivity"
+        android:text="This is streaming page"
+        android:textSize="20dp" />
 
     <Button
         android:id="@+id/back_record"

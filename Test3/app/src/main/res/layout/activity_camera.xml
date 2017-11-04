@@ -49,6 +49,6 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_gravity="right"
-        android:onClick="playerActivity"
+        android:onClick="playerlistActivity"
         android:text="Stream" />
 </RelativeLayout>

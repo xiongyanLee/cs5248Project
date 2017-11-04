@@ -36,8 +36,8 @@ public class CameraActivity extends Activity {
         //playerView = (SimpleExoPlayerView) findViewById(R.id.video_view);
     }
 
-    public void playerActivity(View view){
-        Intent intent  = new Intent(this, Player.class);
+    public void playerlistActivity(View view){
+        Intent intent  = new Intent(this, Playerlist.class);
         startActivity(intent);
     }
 
