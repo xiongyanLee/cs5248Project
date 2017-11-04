@@ -1,6 +1,7 @@
 package com.example.nuonuomisu.test3;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -35,10 +36,17 @@ public class Player extends AppCompatActivity {
     private long playbackPosition;
     private int currentWindow;
     private boolean playWhenReady = true;
+    private Uri uri;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player);
+        Intent intent = getIntent();
+        Bundle passValues = intent.getExtras();
+        if(passValues != null){
+        String uri_to_play = (String) passValues.get("uri");
+        uri = Uri.parse(uri_to_play);
+        }
         playerView = (SimpleExoPlayerView) findViewById(R.id.video_view);
     }
 
@@ -86,7 +94,8 @@ public class Player extends AppCompatActivity {
             player.setPlayWhenReady(playWhenReady);
             player.seekTo(currentWindow, playbackPosition);
         }
-        MediaSource mediaSource = buildMediaSource(Uri.parse(getString(R.string.media_url_dash)));
+        //MediaSource mediaSource = buildMediaSource(Uri.parse(getString(R.string.media_url_dash2)));
+        MediaSource mediaSource = buildMediaSource();
         player.prepare(mediaSource, true, false);
     }
 
@@ -100,7 +109,7 @@ public class Player extends AppCompatActivity {
         }
     }
 
-    private MediaSource buildMediaSource(Uri uri) {
+    private MediaSource buildMediaSource() {
         DataSource.Factory dataSourceFactory =
                 new DefaultHttpDataSourceFactory("ua", BANDWIDTH_METER);
         DashChunkSource.Factory dashChunkSourceFactory =

@@ -6,31 +6,39 @@
     android:layout_height="match_parent"
     android:background="#255">
 
-    <TextView
-        android:id="@+id/textView_string"
+    <Button
+        android:id="@+id/addBtn"
+        android:text="Add New Item"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:onClick="updatePlayerList"/>
+
+    <ListView
+        android:id="@+id/video_list"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:gravity="center"
-        android:onClick="playerActivity"
-        android:text="This is streaming page"
-        android:textSize="20dp" />
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true">
+    </ListView>
 
     <Button
-        android:id="@+id/back_record"
+        android:id="@+id/record_back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="left"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
+        android:layout_gravity="left"
+        android:onClick="cameraActivity"
         android:text="Record" />
 
     <Button
-        android:id="@+id/stay_stream"
+        android:id="@+id/stream_stay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
         android:layout_gravity="right"
         android:text="Stream" />
+
 
 </RelativeLayout>
