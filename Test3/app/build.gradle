@@ -29,4 +29,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:support-v13:26.0.0-alpha1'
     compile 'com.google.android.exoplayer:exoplayer:r2.4.0'
+    compile 'com.writingminds:FFmpegAndroid:0.3.2'
+    compile 'com.loopj.android:android-async-http:1.4.9'
+
 }

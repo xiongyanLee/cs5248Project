@@ -606,7 +606,7 @@ public class Camera2VideoFragment extends Fragment
 
 
         return (dir == null ? "" : (dir.getAbsolutePath() + "/"))
-                +"Recording_" +System.currentTimeMillis() + ".mp4";
+                +"Recording" +System.currentTimeMillis() + ".mp4";
 
     }
 

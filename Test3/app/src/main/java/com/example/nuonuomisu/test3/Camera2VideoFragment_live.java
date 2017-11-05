@@ -615,7 +615,7 @@ public class Camera2VideoFragment_live extends Fragment
     private String getVideoFilePath(Context context) {
         final File dir = context.getExternalFilesDir(null);
         return (dir == null ? "" : (dir.getAbsolutePath() + "/"))
-                +"Live_" +System.currentTimeMillis() + ".mp4";
+                +"Live" +System.currentTimeMillis() + ".mp4";
     }
 
     private void startRecordingVideo() {
