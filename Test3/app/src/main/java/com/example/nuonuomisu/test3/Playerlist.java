@@ -14,7 +14,7 @@ import android.widget.HeaderViewListAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -59,8 +59,8 @@ public class Playerlist extends AppCompatActivity {
 
     public void updatePlayerList(View view) {
         List video_list = get_video_list();
-        listItems.add("Clicked : "+clickCounter++);
-        listItems.add("Clicked : "+clickCounter++);
+        listItems.add("Video "+clickCounter++);
+        listItems.add("Video "+clickCounter++);
         //listItems.remove(0);
         adapter.notifyDataSetChanged();
     }
@@ -73,15 +73,16 @@ public class Playerlist extends AppCompatActivity {
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
             conn.setReadTimeout(10000);
             conn.setConnectTimeout(15000);
+            conn.setRequestProperty("Content-Type","application/json");
             conn.setRequestMethod("POST");
             conn.setDoInput(true);
             conn.setDoOutput(true);
+            conn.setUseCaches (false);
 
-            Uri.Builder builder = new Uri.Builder()
-                    .appendQueryParameter("firstParam", "paramValue1")
-                    .appendQueryParameter("secondParam", "paramValue2")
-                    .appendQueryParameter("thirdParam", "paramValue3");
-            String query = builder.build().getEncodedQuery();
+            JSONObject jsonParam = new JSONObject();
+            jsonParam.put("ID", "25");
+            jsonParam.put("description", "Real");
+            jsonParam.put("enable", "true");
             OutputStream os = conn.getOutputStream();
             BufferedWriter writer = new BufferedWriter(
                     new OutputStreamWriter(os, "UTF-8"));
@@ -99,7 +100,6 @@ public class Playerlist extends AppCompatActivity {
             }
             else {
                 response="";
-
             }
         } catch (Exception e){
             e.printStackTrace();
