@@ -2,11 +2,14 @@ package com.example.nuonuomisu.test3;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -20,6 +23,7 @@ import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
@@ -38,6 +42,8 @@ public class Player extends AppCompatActivity {
     private int currentWindow;
     private boolean playWhenReady = true;
     private Uri uri;
+    private Handler handler;
+    private TextView bandwidthview;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,9 +54,19 @@ public class Player extends AppCompatActivity {
         String uri_to_play = (String) passValues.get("uri");
         uri = Uri.parse(uri_to_play);
         }
+        bandwidthview = findViewById(R.id.bandwidth);
+        bandwidthview.setTextColor(Color.parseColor("#F0FFF0"));
         playerView = (SimpleExoPlayerView) findViewById(R.id.video_view);
-        long bandwidth = BANDWIDTH_METER.getBitrateEstimate();
-        Log.i("Bandwidth measurement", "Current Bandwidth is: " + bandwidth);
+        handler = new Handler();
+        final Runnable r = new Runnable(){
+            public void run() {
+                double bandwidth = (double) BANDWIDTH_METER.getBitrateEstimate()/Math.pow(1024,2);
+                Log.i("Bandwidth measurement", "Current Bandwidth is: " + bandwidth + "Mb/s");
+                bandwidthview.setText("Current Bandwidth is: " + String.format("%.2f",bandwidth) + "Mb/s");
+                handler.postDelayed(this, 1000);
+            }
+        };
+        handler.postDelayed(r, 1000);
     }
 
     @Override
