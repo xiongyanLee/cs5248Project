@@ -7,33 +7,23 @@
     android:background="#255"
     tools:context="com.example.nuonuomisu.test3.CameraActivity">
 
-    <ViewFlipper android:id="@+id/myViewFlipper" android:layout_width="match_parent" android:layout_height="match_parent">
-     <RelativeLayout
-         android:id="@+id/record_layout"
-         android:layout_width="match_parent"
-         android:layout_height="match_parent">
+    <Button
+        android:id="@+id/button_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="recorderActivity"
+        android:text="Recording Mode" />
 
-         <Button
-             android:id="@+id/button_start"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:onClick="recorderActivity"
-             android:text="start recording" />
-     </RelativeLayout>
+    <Button
+        android:id="@+id/button_Live"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button_start"
+        android:layout_marginTop="139dp"
+        android:onClick="recorderLiveActivity"
+        android:text="Live Mode" />
 
-     <RelativeLayout
-         android:id="@+id/stream_layout"
-         android:layout_width="match_parent"
-         android:layout_height="match_parent">
-         <TextView
-             android:id="@+id/textView_string"
-             android:layout_width="match_parent"
-             android:layout_height="100dp"
-             android:gravity="center"
-             android:textSize="20dp"
-             android:text="This is streaming page" />
-     </RelativeLayout>
-    </ViewFlipper>
 
     <Button
         android:id="@+id/record_page"

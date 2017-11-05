@@ -41,7 +41,10 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -211,6 +214,7 @@ public class Camera2VideoFragment_live extends Fragment
         return new Camera2VideoFragment_live();
     }
 
+    private TextView myMode;
     /**
      * In this sample, we choose a video size with 3x4 aspect ratio. Also, we don't use sizes
      * larger than 1080p, since MediaRecorder cannot handle such a high-resolution video.
@@ -270,6 +274,9 @@ public class Camera2VideoFragment_live extends Fragment
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
         mButtonVideo = (Button) view.findViewById(R.id.video);
         mButtonVideo.setOnClickListener(this);
+        myMode = (TextView) view.findViewById(R.id.modeView);
+        myMode.setText("Live Mode");
+
 //        view.findViewById(R.id.info).setOnClickListener(this);
     }
 
@@ -608,7 +615,7 @@ public class Camera2VideoFragment_live extends Fragment
     private String getVideoFilePath(Context context) {
         final File dir = context.getExternalFilesDir(null);
         return (dir == null ? "" : (dir.getAbsolutePath() + "/"))
-                + System.currentTimeMillis() + ".mp4";
+                +"Live_" +System.currentTimeMillis() + ".mp4";
     }
 
     private void startRecordingVideo() {

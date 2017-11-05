@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ViewFlipper;
 
 
 public class CameraActivity extends Activity {
@@ -14,11 +12,11 @@ public class CameraActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final ViewFlipper flipview = (ViewFlipper) findViewById(R.id.myViewFlipper);
+        //final ViewFlipper flipview = (ViewFlipper) findViewById(R.id.myViewFlipper);
         setContentView(R.layout.activity_camera);
 
-        Button start_recording = findViewById(R.id.button_start);
-        Button stream = findViewById(R.id.stream_page);
+        //Button start_recording = findViewById(R.id.button_start);
+        //Button stream = findViewById(R.id.stream_page);
 
     }
 
@@ -32,6 +30,10 @@ public class CameraActivity extends Activity {
         startActivity(intent);
     }
 
+    public void recorderLiveActivity(View view){
+        Intent intent  = new Intent(this, RecorderLive.class);
+        startActivity(intent);
+    }
 
 
 }

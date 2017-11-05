@@ -25,9 +25,6 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
-import android.media.MediaFormat;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -44,13 +41,11 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -214,6 +209,8 @@ public class Camera2VideoFragment extends Fragment
     private String mNextVideoAbsolutePath;
     private CaptureRequest.Builder mPreviewBuilder;
 
+    private TextView myMode;
+
     public static Camera2VideoFragment newInstance() {
         return new Camera2VideoFragment();
     }
@@ -270,7 +267,7 @@ public class Camera2VideoFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_camera2_video, container, false);
+        return inflater.inflate(R.layout.fragmentrecording, container, false);
     }
 
     @Override
@@ -278,7 +275,9 @@ public class Camera2VideoFragment extends Fragment
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
         mButtonVideo = (Button) view.findViewById(R.id.video);
         mButtonVideo.setOnClickListener(this);
-//        view.findViewById(R.id.info).setOnClickListener(this);
+
+        myMode = (TextView) view.findViewById(R.id.modeView);
+        myMode.setText("Recording Mode");
     }
 
     @Override
@@ -298,6 +297,8 @@ public class Camera2VideoFragment extends Fragment
         stopBackgroundThread();
         super.onPause();
     }
+
+
 
     @Override
     public void onClick(View view) {
@@ -580,6 +581,7 @@ public class Camera2VideoFragment extends Fragment
         if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath.isEmpty()) {
             mNextVideoAbsolutePath = getVideoFilePath(getActivity());
         }
+        Log.d("path", mNextVideoAbsolutePath);
         mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
         mMediaRecorder.setVideoEncodingBitRate(10000000);
         mMediaRecorder.setVideoFrameRate(30);
@@ -601,14 +603,11 @@ public class Camera2VideoFragment extends Fragment
 
     private String getVideoFilePath(Context context) {
         final File dir = context.getExternalFilesDir(null);
-        return (dir == null ? "" : (dir.getAbsolutePath() + "/"))
-                + System.currentTimeMillis() + ".mp4";
-    }
 
-    private String getVideoFilePath2(Context context) {
-        final File dir = context.getExternalFilesDir(null);
+
         return (dir == null ? "" : (dir.getAbsolutePath() + "/"))
-                + System.currentTimeMillis() + "H264.mp4";
+                +"Recording_" +System.currentTimeMillis() + ".mp4";
+
     }
 
     private void startRecordingVideo() {
@@ -694,7 +693,9 @@ public class Camera2VideoFragment extends Fragment
 
 
         mNextVideoAbsolutePath = null;
+        Log.d("TAG", "Before preview");
         startPreview();
+        Log.d("TAG", "After preview");
     }
 
 
@@ -767,87 +768,4 @@ public class Camera2VideoFragment extends Fragment
     }
 
 
-    private MediaCodec mMediaCodec;
-    private ByteBuffer[] inputBuffers;
-    private ByteBuffer[] outputBuffers;
-    private FileOutputStream fos;
-
-    private void initCodec() {
-
-        File mVideoFile = new File(getVideoFilePath2(getActivity()));
-
-        try {
-            fos = new FileOutputStream(mVideoFile, false);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
-            mMediaCodec = MediaCodec.createEncoderByType("video/avc");
-            MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc",
-                    320,
-                    240);
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 125000);
-            mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 15);
-            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
-                    MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Planar);
-            mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 5);
-            mMediaCodec.configure(mediaFormat,
-                    null,
-                    null,
-                    MediaCodec.CONFIGURE_FLAG_ENCODE);
-            mMediaCodec.start();
-            inputBuffers = mMediaCodec.getInputBuffers();
-            outputBuffers = mMediaCodec.getOutputBuffers();
-        } catch ( IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private synchronized void encode(byte[] data) {
-        inputBuffers = mMediaCodec.getInputBuffers();// here changes
-        outputBuffers = mMediaCodec.getOutputBuffers();
-
-        int inputBufferIndex = mMediaCodec.dequeueInputBuffer(-1);
-        if (inputBufferIndex >= 0) {
-            ByteBuffer inputBuffer = inputBuffers[inputBufferIndex];
-            inputBuffer.clear();
-            inputBuffer.put(data);
-            mMediaCodec.queueInputBuffer(inputBufferIndex, 0, data.length, 0, 0);
-        } else {
-            return;
-        }
-
-        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-        int outputBufferIndex = mMediaCodec.dequeueOutputBuffer(bufferInfo, 0);
-        Log.i("TAG", "outputBufferIndex-->" + outputBufferIndex);
-        do {
-            if (outputBufferIndex >= 0) {
-                ByteBuffer outBuffer = outputBuffers[outputBufferIndex];
-                System.out.println("buffer info-->" + bufferInfo.offset + "--"
-                        + bufferInfo.size + "--" + bufferInfo.flags + "--"
-                        + bufferInfo.presentationTimeUs);
-                byte[] outData = new byte[bufferInfo.size];
-                outBuffer.get(outData);
-                try {
-                    if (bufferInfo.offset != 0) {
-                        fos.write(outData, bufferInfo.offset, outData.length
-                                - bufferInfo.offset);
-                    } else {
-                        fos.write(outData, 0, outData.length);
-                    }
-                    fos.flush();
-                    Log.i("TAG", "out data -- > " + outData.length);
-                    mMediaCodec.releaseOutputBuffer(outputBufferIndex, false);
-                    outputBufferIndex = mMediaCodec.dequeueOutputBuffer(bufferInfo,
-                            0);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else if (outputBufferIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
-                outputBuffers = mMediaCodec.getOutputBuffers();
-            } else if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                MediaFormat format = mMediaCodec.getOutputFormat();
-            }
-        } while (outputBufferIndex >= 0);
-    }
 }

@@ -7,4 +7,13 @@
     android:background="#255"
     tools:context="com.example.nuonuomisu.test3.Recorder">
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="200px"
+        android:layout_height="200px"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="uploadListActivity"
+        android:text="Pending Uploaded Videos"
+        android:textSize="15sp" />
 </RelativeLayout>
