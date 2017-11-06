@@ -23,8 +23,10 @@ import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedExceptio
 import com.loopj.android.http.AsyncHttpClient;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -258,44 +260,44 @@ public class Uploadlist extends AppCompatActivity {
         Log.d("CUT", "File Count: "+count);
 
 
-        //Log.d("HTTP", "=========Start to Send HTTP request========");
+        Log.d("HTTP", "=========Start to Send HTTP request========");
 
-//        for (int i = 0; i< count; i++){
-//            wait = true;
-//
-//            Log.d("HTTP", "Number: "+ i);
-//
-//            long dur = 0;
-//            if (i==count-1){
-//                dur = lastDuration;
-//            }else {
-//                dur = 3000;
-//            }
-//
-//            //Some url endpoint that you may have
-//
-//            //String to place our result in
-//            String result;
-//            //Instantiate new instance of our class
-//            HttpPostRequest getRequest;
-//            //Perform the doInBackground method, passing in our url
-//            try {
-//                getRequest = new HttpPostRequest("UTF-8");
-//
-//                Log.d("HTTP", "path: "+path + n + "_" + i + ".mp4");
-//                Log.d("HTTP", "name: "+n + "_" + i + ".mp4");
-//                Log.d("HTTP", "session: "+ "Test");
-//                Log.d("HTTP", "duration: "+ dur);
-//
-//                result = getRequest.execute(path + n + "_" + i + ".mp4", n + "_" + i + ".mp4", "Test", ""+dur).get();
-//
-//                Log.d("HTTP", "Final Reuslt: "+ result);
-//            } catch (ExecutionException|InterruptedException|IOException e){
-//                Log.d("HTTP", "Error");
-//                e.printStackTrace();
-//            }
-//
-//        }
+        for (int i = 0; i< count; i++){
+            wait = true;
+
+            Log.d("HTTP", "Number: "+ i);
+
+            long dur = 0;
+            if (i==count-1){
+                dur = lastDuration;
+            }else {
+                dur = 3000;
+            }
+
+            //Some url endpoint that you may have
+
+            //String to place our result in
+            String result;
+            //Instantiate new instance of our class
+            HttpPostRequest getRequest;
+            //Perform the doInBackground method, passing in our url
+            try {
+                getRequest = new HttpPostRequest("UTF-8");
+
+                Log.d("HTTP", "path: "+path + n + "_" + i + ".mp4");
+                Log.d("HTTP", "name: "+n + "_" + i + ".mp4");
+                Log.d("HTTP", "session: "+ "Test");
+                Log.d("HTTP", "duration: "+ dur);
+
+                result = getRequest.execute(path + n + "_" + i + ".mp4", n + "_" + i + ".mp4", "Test", ""+dur).get();
+
+                Log.d("HTTP", "Final Reuslt: "+ result);
+            } catch (ExecutionException |InterruptedException|IOException e){
+                Log.d("HTTP", "Error");
+                e.printStackTrace();
+            }
+
+        }
 
 
     }
