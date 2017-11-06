@@ -44,7 +44,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 public class Camera2VideoFragment_live extends Fragment
         implements View.OnClickListener, FragmentCompat.OnRequestPermissionsResultCallback {
 
+    private int livingFileCount = 0;
     private static final int SENSOR_ORIENTATION_DEFAULT_DEGREES = 90;
     private static final int SENSOR_ORIENTATION_INVERSE_DEGREES = 270;
     private static final SparseIntArray DEFAULT_ORIENTATIONS = new SparseIntArray();
@@ -569,7 +574,7 @@ public class Camera2VideoFragment_live extends Fragment
         if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath.isEmpty()) {
             mNextVideoAbsolutePath = getVideoFilePath(getActivity());
         }
-        mMediaRecorder.setOutputFile(new File(mNextVideoAbsolutePath));
+        mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
         mMediaRecorder.setVideoEncodingBitRate(5000000);
         mMediaRecorder.setVideoFrameRate(30);
         mMediaRecorder.setVideoSize(1280, 720);
@@ -587,29 +592,118 @@ public class Camera2VideoFragment_live extends Fragment
         }
 
         mMediaRecorder.setMaxDuration(3 * 1000);
-        //mMediaRecorder.setMaxFileSize(480*1024);
 
         mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
             @Override
             public void onInfo(MediaRecorder mr, int what, int extra) {
                 if(what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
-//                if(what == MediaRecorder.MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED) {
                     Log.d("timing", "3 second now!!!!");
-
-//                    mNextVideoAbsolutePath = getVideoFilePath(getActivity());
-//                    Log.d("Path", mNextVideoAbsolutePath);
-//                    try {
-//                        mMediaRecorder.setNextOutputFile(new File(mNextVideoAbsolutePath));
-//                    } catch (IOException e){
-//                        e.printStackTrace();
-//                    }
-                    stopRecordingVideo2();
-                    startRecordingVideo2();
+                    livingFileCount++;
+                    cutVideo(mNextVideoAbsolutePath);
+//                    stopRecordingVideo2();
+//                    startRecordingVideo2();
                 }
             }
         });
 
         mMediaRecorder.prepare();
+    }
+
+    private void cutVideo(String fullPath){
+        String path = fullPath.substring(0, fullPath.lastIndexOf('/')+1);
+        String name = fullPath.substring(fullPath.lastIndexOf('/')+1, fullPath.length());
+
+        Log.d("Cut", path);
+        Log.d("Cut", name);
+
+        Log.d("Cut", path + name);
+
+        String n = name.substring(0, name.indexOf("."));
+
+        FFmpeg ffmpeg = FFmpeg.getInstance(getContext());
+
+        try {
+            ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
+
+                @Override
+                public void onStart() {
+                }
+
+                @Override
+                public void onFailure() {
+                }
+
+                @Override
+                public void onSuccess() {
+                }
+
+                @Override
+                public void onFinish() {
+                }
+            });
+        } catch (FFmpegNotSupportedException e) {
+            // Handle if FFmpeg is not supported by device
+            e.printStackTrace();
+        }
+
+        long start = 0;
+        long end = 3000;
+
+        start = livingFileCount * 3000;
+        end = livingFileCount * 3000 + 3000;
+
+        String startString = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(start),
+                TimeUnit.MILLISECONDS.toMinutes(start) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(start)),
+                TimeUnit.MILLISECONDS.toSeconds(start) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(start)));
+        String endString = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(end),
+                TimeUnit.MILLISECONDS.toMinutes(end) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(end)),
+                TimeUnit.MILLISECONDS.toSeconds(end) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(end)));
+
+        Log.d("Cut", "startString: "+startString);
+        Log.d("Cut", "endString: "+endString);
+
+        String[] cmd = new String[]{"-y", "-i", path + name, "-ss", startString, "-vcodec", "copy",
+                "-acodec", "copy", "-t", endString, "-strict", "-2", path + n +"_"+livingFileCount+".mp4"};
+
+        Log.d("Cut", "CutFile: "+endString);
+        try {
+            ffmpeg.execute(cmd, new FFmpegExecuteResponseHandler() {
+                @Override
+                public void onSuccess(String message) {
+                    Log.i("VideoEditActivity", "Success " + message);
+                    // is_video_generated_ = true;
+                }
+
+                @Override
+                public void onProgress(String message) {
+                    Log.i("VideoEditActivity", "Progress updated " + message);
+                }
+
+                @Override
+                public void onFailure(String message) {
+                    Log.e("VideoEditActivity", "ERROR! " + message);
+                }
+
+                @Override
+                public void onStart() {
+//                            progress_dialog_.setMessage(getString(R.string.str_video_generating));
+//                            progress_dialog_.show();
+                }
+
+                @Override
+                public void onFinish() {
+                    Log.i("VideoEditActivity", "Finished");
+//                            progress_dialog_.hide();
+//
+//                            Intent intent = new Intent(getApplicationContext(), VideoPlayActivity.class);
+//                            intent.putExtra("media", edited_video_path_);
+//                            startActivity(intent);
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private String getVideoFilePath(Context context) {
@@ -619,6 +713,8 @@ public class Camera2VideoFragment_live extends Fragment
     }
 
     private void startRecordingVideo() {
+
+        livingFileCount = 0;
         if (null == mCameraDevice || !mTextureView.isAvailable() || null == mPreviewSize) {
             return;
         }

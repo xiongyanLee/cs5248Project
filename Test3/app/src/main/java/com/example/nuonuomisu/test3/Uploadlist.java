@@ -21,18 +21,20 @@ import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import cz.msebera.android.httpclient.Header;
-
-import static java.lang.Thread.sleep;
 
 /**
  * Created by xiongyan on 11/4/2017.
@@ -278,60 +280,206 @@ public class Uploadlist extends AppCompatActivity {
                 dur = 3000;
             }
 
-            File myFile = new File(path + n + "_" + count + ".mp4");
-            RequestParams params = new RequestParams();
+            //Some url endpoint that you may have
 
-            Log.d("HTTP", "name: "+ n + "_" + count + ".mp4");
+            //String to place our result in
+            String result;
+            //Instantiate new instance of our class
+            HttpGetRequest getRequest;
+            //Perform the doInBackground method, passing in our url
+            try {
+                getRequest = new HttpGetRequest("UTF-8");
+
+                result = getRequest.execute(path + n + "_" + i + ".mp4", n + "_" + i + ".mp4", "Test", ""+dur).get();
+
+                Log.d("HTTP", "Final Reuslt "+ result);
+            } catch (ExecutionException|InterruptedException|IOException e){
+                Log.d("HTTP", "ERRRRRRRRR");
+                e.printStackTrace();
+            }
+
+
+            Log.d("HTTP", "name: "+path + n + "_" + i + ".mp4");
             Log.d("HTTP", "session: "+ "Test");
             Log.d("HTTP", "duration: "+ dur);
 
 
-            try {
-                params.put("file", myFile);
-                params.put("name", n + "_" + count + ".mp4");
-                params.put("session", "Test");
-                params.put("duration", dur);
-
-            } catch (FileNotFoundException e) {
-            }
-
-
-
-            Log.d("HTTP", "=========Before Post Request");
-            uploadClient.post(this,
-                    "http://172.25.104.202:8000/streaming/",
-                    null,
-                    params,
-                    "multipart/form-data",
-                    new AsyncHttpResponseHandler() {
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                            // called when response HTTP status is "200 OK"
-                            wait=false;
-                            Log.d("HTTP", "=========Post request success");
-                        }
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                            // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                            wait=false;
-                            Log.d("HTTP", "=========Post request fail");
-                        }
-                    });
-
-            while(wait) {
-                try {
-                    sleep(100);
-                    Log.d("HTTP", "------Waiting-----");
-                } catch (InterruptedException e){
-                    e.printStackTrace();
-                }
-            }
         }
 
-//
-//        File f = new File(path + name);
-//        f.delete();
+
     }
 
+    public byte[] read(File file) throws IOException {
+
+        ByteArrayOutputStream ous = null;
+        InputStream ios = null;
+        try {
+            byte[] buffer = new byte[4096];
+            ous = new ByteArrayOutputStream();
+            ios = new FileInputStream(file);
+            int read = 0;
+            while ((read = ios.read(buffer)) != -1) {
+                ous.write(buffer, 0, read);
+            }
+        }finally {
+            try {
+                if (ous != null)
+                    ous.close();
+            } catch (IOException e) {
+            }
+
+            try {
+                if (ios != null)
+                    ios.close();
+            } catch (IOException e) {
+            }
+        }
+        return ous.toByteArray();
+    }
+
+    public int uploadFile(String sourceFileUri) {
+
+        int serverResponseCode = 0;
+
+        String fileName = sourceFileUri;
+
+        HttpURLConnection conn = null;
+        DataOutputStream dos = null;
+        String lineEnd = "\r\n";
+        String twoHyphens = "--";
+        String boundary = "*****";
+        int bytesRead, bytesAvailable, bufferSize;
+        byte[] buffer;
+        int maxBufferSize = 1 * 1024 * 1024;
+        File sourceFile = new File(sourceFileUri);
+
+        Log.d("HTTP", "In the upload");
+        if (!sourceFile.isFile()) {
+
+            //dialog.dismiss();
+            Log.d("HTTP", "file not exist");
+
+//            runOnUiThread(new Runnable() {
+//                public void run() {
+//                    Log.d("HTTP", "Source File not exist :");
+//                }
+//            });
+
+            return 0;
+
+        }
+        else
+        {
+            try {
+
+                // open a URL connection to the Servlet
+                FileInputStream fileInputStream = new FileInputStream(sourceFile);
+                URL url = new URL("http://119.28.108.175:5000/streaming/");
+
+                // Open a HTTP  connection to  the URL
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setDoInput(true); // Allow Inputs
+                conn.setDoOutput(true); // Allow Outputs
+                conn.setUseCaches(false); // Don't use a Cached Copy
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Connection", "Keep-Alive");
+                conn.setRequestProperty("ENCTYPE", "multipart/form-data");
+                conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+                conn.setRequestProperty("uploaded_file", fileName);
+                Log.d("http", "before GET OUT put stream");
+                dos = new DataOutputStream(conn.getOutputStream());
+                Log.d("http", "after GET OUT put stream");
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+                dos.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\";filename=\""
+                                + fileName + "\"" + lineEnd);
+
+                        dos.writeBytes(lineEnd);
+
+                Log.d("http", "before create buffer");
+
+                // create a buffer of  maximum size
+                bytesAvailable = fileInputStream.available();
+
+                bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                buffer = new byte[bufferSize];
+
+                // read file and write it into form...
+                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+                Log.d("http", "after bytes read");
+
+                while (bytesRead > 0) {
+
+                    dos.write(buffer, 0, bufferSize);
+                    bytesAvailable = fileInputStream.available();
+                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+                }
+
+                Log.d("http", "after writng files");
+
+                // send multipart form data necesssary after file data...
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+
+                Log.d("http", "before get response code");
+                // Responses from the server (code and message)
+                serverResponseCode = conn.getResponseCode();
+                String serverResponseMessage = conn.getResponseMessage();
+
+                Log.d("uploadFile", "HTTP Response is : "
+                        + serverResponseMessage + ": " + serverResponseCode);
+
+                if(serverResponseCode == 200){
+
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+
+                            String msg = "File Upload Completed.\n\n See uploaded file here : \n\n"
+                                    +" http://www.androidexample.com/media/uploads/"
+                                    ;
+
+                            Log.d("http", msg);
+
+                        }
+                    });
+                }
+
+                //close the streams //
+                fileInputStream.close();
+                dos.flush();
+                dos.close();
+
+            } catch (MalformedURLException ex) {
+
+                //dialog.dismiss();
+                ex.printStackTrace();
+
+//                runOnUiThread(new Runnable() {
+//                    public void run() {
+//                        Log.d("HTTP", "MalformedURLException Exception : check script url.");
+//                    }
+//                });
+
+                Log.e("Upload file to server", "error: " + ex.getMessage(), ex);
+            } catch (Exception e) {
+
+                //dialog.dismiss();
+                e.printStackTrace();
+                Log.d("HTTP", "Exception : "  + e.getMessage());
+//                runOnUiThread(new Runnable() {
+//                    public void run() {
+//                        Log.d("HTTP", "Got Exception : see logcat ");
+//
+//                    }
+//                });
+
+            }
+            //dialog.dismiss();
+            return serverResponseCode;
+
+        } // End else block
+    }
 
 }
