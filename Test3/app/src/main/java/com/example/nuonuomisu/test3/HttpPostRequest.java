@@ -7,8 +7,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,25 +15,20 @@ import java.net.URL;
  * Created by nuonuomisu on 6/11/17.
  */
 
-public class HttpGetRequest extends AsyncTask<String, Void, String> {
-    public static final String REQUEST_METHOD = "GET";
+public class HttpPostRequest extends AsyncTask<String, Void, String> {
+
     public static final int READ_TIMEOUT = 15000;
     public static final int CONNECTION_TIMEOUT = 15000;
 
-    private final String boundary;
     private static final String LINE_FEED = "\r\n";
-    private HttpURLConnection httpConn;
     private String charset;
-    private OutputStream outputStream;
-    private PrintWriter writer;
 
 
-    public HttpGetRequest(String charset)
+    public HttpPostRequest(String charset)
             throws IOException {
         this.charset = charset;
 
         // creates a unique boundary based on time stamp
-        boundary = "===" + System.currentTimeMillis() + "===";
 
     }
 
@@ -135,7 +128,6 @@ public class HttpGetRequest extends AsyncTask<String, Void, String> {
                         + serverResponseMessage + ": " + serverResponseCode);
 
                 if(serverResponseCode == 200){
-
                     Log.d("HTTP", "Code"+ serverResponseCode);
                 }
 
@@ -147,14 +139,13 @@ public class HttpGetRequest extends AsyncTask<String, Void, String> {
             } catch (MalformedURLException ex) {
 
                 ex.printStackTrace();
-                Log.e("Upload file to server", "error: " + ex.getMessage(), ex);
+                Log.e("HTTP", "MalformedURLException: " + ex.getMessage(), ex);
             } catch (Exception e) {
 
                 e.printStackTrace();
                 Log.d("HTTP", "Exception : "  + e.getMessage());
 
             }
-            //dialog.dismiss();
             return ""+serverResponseCode;
 
         }
