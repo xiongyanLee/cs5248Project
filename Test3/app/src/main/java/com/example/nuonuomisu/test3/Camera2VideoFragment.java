@@ -44,7 +44,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -690,7 +692,7 @@ public class Camera2VideoFragment extends Fragment
                     Toast.LENGTH_SHORT).show();
             Log.d("TAG", "Video saved: " + mNextVideoAbsolutePath);
         }
-
+        recordDown(mNextVideoAbsolutePath);
 
         mNextVideoAbsolutePath = null;
         Log.d("TAG", "Before preview");
@@ -698,6 +700,37 @@ public class Camera2VideoFragment extends Fragment
         Log.d("TAG", "After preview");
     }
 
+    private void recordDown(String fullPath){
+        Log.d("WRITE", "Full: "+fullPath);
+
+        String location = fullPath.substring(0, fullPath.lastIndexOf("Recor"));
+        String fileName = fullPath.substring(fullPath.lastIndexOf("Recor"));
+        fileName = fileName.substring(0, fileName.indexOf("."));
+
+        Log.d("WRITE", "Location: "+location);
+        Log.d("WRITE", "Name: "+fileName);
+        String txtfile = location+fileName+"temp.txt";
+
+        try {
+            // Assume default encoding.
+            FileWriter fileWriter =
+                    new FileWriter(txtfile);
+
+            // Always wrap FileWriter in BufferedWriter.
+            BufferedWriter bufferedWriter =
+                    new BufferedWriter(fileWriter);
+
+            bufferedWriter.write("New");
+            bufferedWriter.newLine();
+            bufferedWriter.write("-1");
+
+            // Always close files.
+            bufferedWriter.close();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+    }
 
     /**
      * Compares two {@code Size}s based on their areas.

@@ -9,23 +9,12 @@
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/btn_upload"
+        android:layout_above="@+id/btn_ok"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="13dp"
-        android:text="Choose your action:"
-        android:textSize="20sp"
-        android:textColor="#ffffff"/>
-
-
-    <Button
-        android:id="@+id/btn_upload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_gravity="left"
-        android:onClick="RecorderActivity"
-        android:text="Upload" />
+        android:layout_marginBottom="11dp"
+        android:text="Upload Failed!"
+        android:textColor="#ffffff"
+        android:textSize="20sp" />
 
 
     <Button
@@ -33,9 +22,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_centerHorizontal="true"
         android:layout_gravity="right"
-        android:text="Delete" />
+        android:text="OK" />
 
 
 </RelativeLayout>

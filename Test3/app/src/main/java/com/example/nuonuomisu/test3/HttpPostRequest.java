@@ -22,7 +22,9 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
     private static final String LINE_FEED = "\r\n";
     private String charset;
-
+    private String lineEnd = "\r\n";
+    private String twoHyphens = "--";
+    private String boundary = "*****";
 
     public HttpPostRequest(String charset)
             throws IOException {
@@ -45,20 +47,17 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
         HttpURLConnection conn = null;
         DataOutputStream dos = null;
-        String lineEnd = "\r\n";
-        String twoHyphens = "--";
-        String boundary = "*****";
+
         int bytesRead, bytesAvailable, bufferSize;
         byte[] buffer;
         int maxBufferSize = 1 * 1024 * 1024;
+
         File sourceFile = new File(sourceFileUri);
 
-        Log.d("HTTP", "In the upload");
 
         if (!sourceFile.isFile()) {
             Log.d("HTTP", "file not exist");
             return "0";
-
         }
         else
         {
@@ -74,6 +73,8 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
                 conn.setDoOutput(true); // Allow Outputs
                 conn.setUseCaches(false); // Don't use a Cached Copy
                 conn.setRequestMethod("POST");
+                conn.setConnectTimeout(2000);
+
                 conn.setRequestProperty("Connection", "Keep-Alive");
                 conn.setRequestProperty("ENCTYPE", "multipart/form-data");
                 conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
@@ -82,22 +83,25 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
                 conn.setRequestProperty("session", session);
                 conn.setRequestProperty("duration", duration);
 
-                Log.d("http", "before GET OUT put stream");
+                Log.d("http", "Open output stream");
+
                 dos = new DataOutputStream(conn.getOutputStream());
-                Log.d("http", "after GET OUT put stream");
+
                 dos.writeBytes(twoHyphens + boundary + lineEnd);
                 dos.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\""
                         + fileName + "\"" + lineEnd);
 
                 dos.writeBytes(lineEnd);
 
-                Log.d("http", "before create buffer");
+                Log.d("http", "Create a Byte Buffer");
 
                 // create a buffer of  maximum size
                 bytesAvailable = fileInputStream.available();
 
                 bufferSize = Math.min(bytesAvailable, maxBufferSize);
                 buffer = new byte[bufferSize];
+
+                Log.d("http", "Start to read file and write");
 
                 // read file and write it into form...
                 bytesRead = fileInputStream.read(buffer, 0, bufferSize);
@@ -113,22 +117,24 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
                 }
 
-                Log.d("http", "after writng files");
+                Log.d("http", "Finish writing files");
 
                 // send multipart form data necesssary after file data...
                 dos.writeBytes(lineEnd);
                 dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
 
-                Log.d("http", "before get response code");
+                Log.d("http", "Get response code");
                 // Responses from the server (code and message)
                 serverResponseCode = conn.getResponseCode();
                 String serverResponseMessage = conn.getResponseMessage();
 
-                Log.d("uploadFile", "HTTP Response is : "
+                Log.d("HTTP", "HTTP Response is : "
                         + serverResponseMessage + ": " + serverResponseCode);
 
                 if(serverResponseCode == 200){
-                    Log.d("HTTP", "Code"+ serverResponseCode);
+                    Log.d("HTTP", "Code: "+ serverResponseCode);
+                } else {
+                    Log.d("HTTP", "Code: "+ serverResponseCode);
                 }
 
                 //close the streams //
@@ -146,6 +152,8 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
                 Log.d("HTTP", "Exception : "  + e.getMessage());
 
             }
+
+
             return ""+serverResponseCode;
 
         }
@@ -153,5 +161,6 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String result){
         super.onPostExecute(result);
     }
+
 
 }

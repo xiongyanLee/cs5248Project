@@ -1,9 +1,6 @@
 package com.example.nuonuomisu.test3;
 
-import android.app.LauncherActivity;
-import android.app.ListActivity;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -86,7 +83,8 @@ public class Playerlist extends AppCompatActivity {
             OutputStream os = conn.getOutputStream();
             BufferedWriter writer = new BufferedWriter(
                     new OutputStreamWriter(os, "UTF-8"));
-            writer.write(query);
+
+//            writer.write(query);
             writer.flush();
             writer.close();
             os.close();
