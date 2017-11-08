@@ -723,6 +723,9 @@ public class Camera2VideoFragment extends Fragment
             bufferedWriter.write("New");
             bufferedWriter.newLine();
             bufferedWriter.write("-1");
+            bufferedWriter.newLine();
+            bufferedWriter.write("-2");
+
 
             // Always close files.
             bufferedWriter.close();

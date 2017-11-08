@@ -3,13 +3,24 @@ package com.example.nuonuomisu.test3;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import static com.loopj.android.http.AsyncHttpClient.log;
 
 /**
  * Created by nuonuomisu on 6/11/17.
@@ -26,31 +37,48 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
     private String twoHyphens = "--";
     private String boundary = "*****";
 
-    public HttpPostRequest(String charset)
-            throws IOException {
+    public HttpPostRequest(String charset) {
         this.charset = charset;
 
         // creates a unique boundary based on time stamp
-
     }
 
     @Override
     protected String doInBackground(String... params){
-        String sourceFileUri = params[0];
-        String name = params[1];
-        String session = params[2];
-        String duration = params[3];
+
+        switch (params[0]){
+            case "clip":
+                return postVideoClip(params[1], params[2], params[3], params[4], params[5]);
+            case "session":
+                return postGetSession(params[1]);
+            case "sid":
+                return postGetSid(params[1], params[2], params[3]);
+            default:
+                log.d("HTTP", "Wrong http command");
+                return "Wrong http command";
+        }
+    }
+
+    protected void onPostExecute(String result){
+        super.onPostExecute(result);
+    }
+
+    private String postVideoClip(String sourceFileUri,
+                                 String name,
+                                 String session,
+                                 String sid,
+                                 String duration){
 
         int serverResponseCode = 0;
 
-        String fileName = sourceFileUri;
+//        String fileName = sourceFileUri;
 
         HttpURLConnection conn = null;
         DataOutputStream dos = null;
 
         int bytesRead, bytesAvailable, bufferSize;
         byte[] buffer;
-        int maxBufferSize = 1 * 1024 * 1024;
+        int maxBufferSize = 4 * 1024 * 1024;
 
         File sourceFile = new File(sourceFileUri);
 
@@ -77,11 +105,19 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
                 conn.setRequestProperty("Connection", "Keep-Alive");
                 conn.setRequestProperty("ENCTYPE", "multipart/form-data");
-                conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-                conn.setRequestProperty("file", fileName);
-                conn.setRequestProperty("name", name);
-                conn.setRequestProperty("session", session);
-                conn.setRequestProperty("duration", duration);
+                conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary+";charset=UTF-8");
+//                conn.setRequestProperty("file", sourceFileUri);
+//                conn.setRequestProperty("name", name);
+//                conn.setRequestProperty("sid", sid);
+//                conn.setRequestProperty("session", session);
+//                conn.setRequestProperty("duration", duration);
+//                conn.setRequestProperty("description", "Desc");
+//
+                Log.d("HTTP", "--" + sourceFileUri);
+                Log.d("HTTP", "--" + name);
+                Log.d("HTTP", "--" + sid);
+                Log.d("HTTP", "--" + session);
+                Log.d("HTTP", "--" + duration);
 
                 Log.d("http", "Open output stream");
 
@@ -89,7 +125,7 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
                 dos.writeBytes(twoHyphens + boundary + lineEnd);
                 dos.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\""
-                        + fileName + "\"" + lineEnd);
+                        + sourceFileUri + "\"" + lineEnd);
 
                 dos.writeBytes(lineEnd);
 
@@ -121,6 +157,31 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
                 // send multipart form data necesssary after file data...
                 dos.writeBytes(lineEnd);
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+                dos.writeBytes("Content-Disposition: form-data; name=\"name\"" + lineEnd);
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(name + lineEnd);
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+
+                dos.writeBytes("Content-Disposition: form-data; name=\"session\"" + lineEnd);
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(session + lineEnd);
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+
+                dos.writeBytes("Content-Disposition: form-data; name=\"sid\"" + lineEnd);
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(sid + lineEnd);
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+
+                dos.writeBytes("Content-Disposition: form-data; name=\"duration\"" + lineEnd);
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(duration + lineEnd);
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+
+                dos.writeBytes("Content-Disposition: form-data; name=\"description\"" + lineEnd);
+                dos.writeBytes(lineEnd);
+                dos.writeBytes("desc" + lineEnd);
+
                 dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
 
                 Log.d("http", "Get response code");
@@ -129,13 +190,7 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
                 String serverResponseMessage = conn.getResponseMessage();
 
                 Log.d("HTTP", "HTTP Response is : "
-                        + serverResponseMessage + ": " + serverResponseCode);
-
-                if(serverResponseCode == 200){
-                    Log.d("HTTP", "Code: "+ serverResponseCode);
-                } else {
-                    Log.d("HTTP", "Code: "+ serverResponseCode);
-                }
+                        + serverResponseMessage + "    Code: " + serverResponseCode);
 
                 //close the streams //
                 fileInputStream.close();
@@ -153,14 +208,120 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
             }
 
-
             return ""+serverResponseCode;
 
         }
-    }
-    protected void onPostExecute(String result){
-        super.onPostExecute(result);
+
+//        return "0";
     }
 
+    private String postGetSession(String userName){
+
+        String session = "Invalid Session";
+        String inputLine = "";
+
+        HttpURLConnection conn = null;
+
+        try {
+
+            // open a URL connection to the Servlet
+            URL url = new URL("http://119.28.108.175:5000/login/");
+
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+            conn.setRequestProperty("Accept","application/json");
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+
+            JSONObject jsonParam = new JSONObject();
+            jsonParam.put("username", userName);
+
+            Log.i("HTTP", "JSON: "+jsonParam.toString());
+            DataOutputStream os = new DataOutputStream(conn.getOutputStream());
+            //os.writeBytes(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
+            os.writeBytes(jsonParam.toString());
+
+            os.flush();
+            os.close();
+
+            if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+                String line;
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                while ((line = br.readLine()) != null) {
+                    inputLine += line;
+                }
+            } else {
+                inputLine = "";
+            }
+            Log.d("HTTP" , "msg:" + inputLine);
+
+            conn.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Gson gson = new Gson();
+        Map<String, String> map2 = gson.fromJson(inputLine, new TypeToken<Map<String, String>>() {}.getType());
+        Log.d("HTTP", map2.get("session"));
+
+        return map2.get("session");
+
+    }
+
+    private String postGetSid(String session, String fileName, String description){
+
+        String sid = "Invalid sid";
+        String inputLine = "";
+
+        HttpURLConnection conn = null;
+
+        try {
+
+            // open a URL connection to the Servlet
+            URL url = new URL("http://119.28.108.175:5000/stream/");
+
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+            conn.setRequestProperty("Accept","application/json");
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+
+            JSONObject jsonParam = new JSONObject();
+            jsonParam.put("session", session);
+            jsonParam.put("name", fileName);
+            jsonParam.put("description", description);
+
+            Log.i("HTTP", "json: "+jsonParam.toString());
+            DataOutputStream os = new DataOutputStream(conn.getOutputStream());
+            //os.writeBytes(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
+            os.writeBytes(jsonParam.toString());
+
+            os.flush();
+            os.close();
+
+            if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+                String line;
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                while ((line = br.readLine()) != null) {
+                    inputLine += line;
+                }
+            } else {
+                inputLine = "";
+            }
+            log.d("HTTP", "CODE: "+conn.getResponseCode());
+            Log.d("HTTP" , "msg:" + inputLine);
+
+            conn.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Log.d("HTTP", inputLine);
+
+
+        return inputLine;
+    }
 
 }

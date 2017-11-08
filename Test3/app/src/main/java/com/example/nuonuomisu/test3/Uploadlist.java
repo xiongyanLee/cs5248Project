@@ -39,9 +39,10 @@ public class Uploadlist extends AppCompatActivity {
     ArrayList<String> listItems=new ArrayList<String>();
     ArrayAdapter<String> adapter;
     private ListView mListView;
-    private String _session = "TEST";
+    private String _UserName = "test";
     final String path = "/storage/emulated/0/Android/data/com.example.nuonuomisu.test3/files/";
-
+    private String _sessionKey = "uubyn2w8wqizmj0g7vfrhkawsdg4opmy";
+    private HttpPostRequest getSessionHTTP;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +50,21 @@ public class Uploadlist extends AppCompatActivity {
         mListView = (ListView) findViewById(R.id.upload_list);
 
         refreshUpdateList2(path);
+
+//        getSessionHTTP = new HttpPostRequest("UTF-8");
+//        try {
+//            Log.d("HTTP", "Start to get session id ");
+//
+//            String httpResult = getSessionHTTP.execute("session", _UserName).get();
+//            Log.d("HTTP", "Get session id: "+ httpResult);
+//            _sessionKey = httpResult;
+//
+//        } catch (ExecutionException|InterruptedException e){
+//            Log.d("HTTP", "Cannot get sesssion id");
+//            e.printStackTrace();
+//        }
+
+        Log.d("HTTP", "Get session id: "+ _sessionKey);
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -206,6 +222,48 @@ public class Uploadlist extends AppCompatActivity {
         return result;
     }
 
+    private String readSid(String file){
+        String tempFile = file.substring(0, file.indexOf("."))+"temp.txt";
+
+        String fileName = path + tempFile;
+        String result = "Invalid";
+
+        // This will reference one line at a time
+        String line = null;
+
+        try {
+            // FileReader reads text files in the default encoding.
+            FileReader fileReader =
+                    new FileReader(fileName);
+
+            // Always wrap FileReader in BufferedReader.
+            BufferedReader bufferedReader =
+                    new BufferedReader(fileReader);
+
+            line = bufferedReader.readLine();
+            line = bufferedReader.readLine();
+            if((line = bufferedReader.readLine()) != null) {
+                result = line;
+            }
+
+            // Always close files.
+            bufferedReader.close();
+        }
+        catch(FileNotFoundException ex) {
+            System.out.println(
+                    "Unable to open file '" +
+                            fileName + "'");
+        }
+        catch(IOException ex) {
+            System.out.println(
+                    "Error reading file '"
+                            + fileName + "'");
+            // Or we could just do this:
+            // ex.printStackTrace();
+        }
+        return result;
+    }
+
     public void uploadPopup(final String fileName, final String filePath) {
 
         // get a reference to the already created main layout
@@ -305,12 +363,33 @@ public class Uploadlist extends AppCompatActivity {
 
     private boolean cutAndUploadVideo(String path, String name){
 
+        String _sid= readSid(name);
+
+
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(this, Uri.fromFile(new File(path+name)));
         String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
         long timeInMillisec = Long.parseLong(time );
         retriever.release();
 
+        if (_sid.equals("-2")) {
+            getSessionHTTP = new HttpPostRequest("UTF-8");
+            try {
+                Log.d("HTTP", "Start to get sid ");
+
+                String httpResult = getSessionHTTP.execute("sid", _sessionKey, name, "Description").get();
+                Log.d("HTTP", "Get sid: " + httpResult);
+                _sid = httpResult;
+
+            } catch (ExecutionException | InterruptedException e) {
+                Log.d("HTTP", "Cannot get sid");
+                e.printStackTrace();
+            }
+        }
+        Log.d("HTTP", "Sid: "+_sid);
+
+
+        //--------------------
         Log.d("Cut", "Full Video Length: " + Long.toString(timeInMillisec));
         Log.d("Cut", "Original File: " + path + name);
 
@@ -429,6 +508,7 @@ public class Uploadlist extends AppCompatActivity {
 //                            startActivity(intent);
                         }
                     });
+                    cutSuccess = true;
 
                 } catch ( Exception e) {
                     Log.d("CUT", "FFmpegCommandAlreadyRunningException");
@@ -436,9 +516,10 @@ public class Uploadlist extends AppCompatActivity {
                     cutSuccess = false;
                 }
 
+
                 /// Upload  ------------------------------------------
                 if (!cutSuccess) {
-                    recordDown(path+name, "Failed", Integer.toString(count));
+                    recordDown(path+name, "Failed", Integer.toString(count), _sid);
                     Log.d("CUT", _fileName + " cutting failed");
                     return false;
                 } else {
@@ -455,10 +536,10 @@ public class Uploadlist extends AppCompatActivity {
 
                     Log.d("HTTP", "fileURL: "+ _fileURL);
                     Log.d("HTTP", "name: "+ _fileName);
-                    Log.d("HTTP", "session: "+ _session);
+                    Log.d("HTTP", "session: "+ _UserName);
                     Log.d("HTTP", "duration: "+ _dur);
 
-                    httpResult = getRequest.execute(_fileURL, _fileName, _session, _dur).get();
+                    httpResult = getRequest.execute("clip", _fileURL, _fileName, _sessionKey, _sid, _dur).get();
                     Log.d("HTTP", "Final Result: "+ httpResult);
 
 
@@ -468,7 +549,7 @@ public class Uploadlist extends AppCompatActivity {
                         uploadSuccess = false;
                     }
 
-                } catch (ExecutionException|InterruptedException|IOException e){
+                } catch (ExecutionException|InterruptedException e){
                     Log.d("HTTP", "Error");
                     e.printStackTrace();
                     uploadSuccess = false;
@@ -480,11 +561,11 @@ public class Uploadlist extends AppCompatActivity {
                 Log.d("HTTP", _fileName + " is delete successfully");
 
                 if (!uploadSuccess) {
-                    recordDown(path+name, "Failed", Integer.toString(count));
+                    recordDown(path+name, "Failed", Integer.toString(count), _sid);
                     Log.d("HTTP", _fileName + " uploading failed");
                     return false;
                 } else {
-                    recordDown(path+name, "Finished", "-2");
+                    recordDown(path+name, "Finished", "-2", _sid);
                     Log.d("HTTP", _fileName + " is uploaded successfully");
                 }
 
@@ -514,10 +595,10 @@ public class Uploadlist extends AppCompatActivity {
 
                 Log.d("HTTP", "path: "+ _filePath);
                 Log.d("HTTP", "name: "+ _fileName);
-                Log.d("HTTP", "session: "+ _session);
+                Log.d("HTTP", "session: "+ _UserName);
                 Log.d("HTTP", "duration: "+ _dur);
 
-                httpResult = getRequest.execute(_filePath, _fileName, _session, _dur).get();
+                httpResult = getRequest.execute(_filePath, _fileName, _UserName, _dur).get();
                 Log.d("HTTP", "Final Result: "+ httpResult);
                 Log.d("HTTP", httpResult);
 
@@ -529,7 +610,7 @@ public class Uploadlist extends AppCompatActivity {
                     uploadSuccess = false;
                 }
 
-            } catch (ExecutionException|InterruptedException|IOException e){
+            } catch (ExecutionException|InterruptedException e){
                 Log.d("HTTP", "Error");
                 e.printStackTrace();
                 uploadSuccess = false;
@@ -538,11 +619,11 @@ public class Uploadlist extends AppCompatActivity {
             newFile.renameTo(file);
 
             if (!uploadSuccess) {
-                recordDown(path+name, "Failed", Integer.toString(count));
+                recordDown(path+name, "Failed", Integer.toString(count), _sid);
                 Log.d("HTTP", _fileName + " uploading failed");
                 return false;
             } else {
-                recordDown(path+name, "Finished", "-2");
+                recordDown(path+name, "Finished", "-2", _sid);
                 Log.d("HTTP", _fileName + " is uploaded successfully");
             }
 
@@ -600,7 +681,7 @@ public class Uploadlist extends AppCompatActivity {
 
     }
 
-    private void recordDown(String fullPath, String status, String stopPoint){
+    private void recordDown(String fullPath, String status, String stopPoint, String sid){
         Log.d("WRITE", "Full: "+fullPath);
 
         String location = fullPath.substring(0, fullPath.lastIndexOf("Recor"));
@@ -623,6 +704,8 @@ public class Uploadlist extends AppCompatActivity {
             bufferedWriter.write(status);
             bufferedWriter.newLine();
             bufferedWriter.write(stopPoint);
+            bufferedWriter.newLine();
+            bufferedWriter.write(sid);
 
             // Always close files.
             bufferedWriter.close();

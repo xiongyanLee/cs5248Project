@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -76,6 +77,10 @@ public class Camera2VideoFragment_live extends Fragment
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
     };
+
+    private String _sid;
+    private HttpPostRequest getSessionHTTP;
+    private String _sessionKey = "uubyn2w8wqizmj0g7vfrhkawsdg4opmy";
 
     static {
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -213,6 +218,8 @@ public class Camera2VideoFragment_live extends Fragment
     };
     private Integer mSensorOrientation;
     private String mNextVideoAbsolutePath;
+    private String mTargetAbsolutePath = "";
+
     private CaptureRequest.Builder mPreviewBuilder;
 
     public static Camera2VideoFragment_live newInstance() {
@@ -309,6 +316,7 @@ public class Camera2VideoFragment_live extends Fragment
             case R.id.video: {
                 if (mIsRecordingVideo) {
                     stopRecordingVideo();
+
                 } else {
                     startRecordingVideo();
                 }
@@ -563,7 +571,7 @@ public class Camera2VideoFragment_live extends Fragment
         mTextureView.setTransform(matrix);
     }
 
-    private void setUpMediaRecorder() throws IOException {
+    private void setUpMediaRecorder(String tag) throws IOException {
         final Activity activity = getActivity();
         if (null == activity) {
             return;
@@ -572,8 +580,14 @@ public class Camera2VideoFragment_live extends Fragment
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath.isEmpty()) {
+
             mNextVideoAbsolutePath = getVideoFilePath(getActivity());
+            mTargetAbsolutePath = mNextVideoAbsolutePath;
         }
+        if (tag == "Live"){
+            mNextVideoAbsolutePath = getVideoFilePath2(mTargetAbsolutePath, livingFileCount);
+        }
+
         mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
         mMediaRecorder.setVideoEncodingBitRate(5000000);
         mMediaRecorder.setVideoFrameRate(30);
@@ -597,11 +611,12 @@ public class Camera2VideoFragment_live extends Fragment
             @Override
             public void onInfo(MediaRecorder mr, int what, int extra) {
                 if(what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
-                    Log.d("timing", "3 second now!!!!");
+                    Log.d("CutLive", "3 second now!!!!");
                     livingFileCount++;
-                    cutVideo(mNextVideoAbsolutePath);
-//                    stopRecordingVideo2();
-//                    startRecordingVideo2();
+//                    cutVideo(mNextVideoAbsolutePath);
+                    stopRecordingVideo2();
+
+                    startRecordingVideo2();
                 }
             }
         });
@@ -613,10 +628,13 @@ public class Camera2VideoFragment_live extends Fragment
         String path = fullPath.substring(0, fullPath.lastIndexOf('/')+1);
         String name = fullPath.substring(fullPath.lastIndexOf('/')+1, fullPath.length());
 
-        Log.d("Cut", path);
-        Log.d("Cut", name);
+        Log.d("CutLive", "Path: "+path);
+        Log.d("CutLive", "Name: "+name);
 
-        Log.d("Cut", path + name);
+        Log.d("CutLive", "Full: "+path + name);
+
+        Log.d("CutLive", "livingFileCount: "+livingFileCount);
+
 
         String n = name.substring(0, name.indexOf("."));
 
@@ -659,29 +677,29 @@ public class Camera2VideoFragment_live extends Fragment
                 TimeUnit.MILLISECONDS.toMinutes(end) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(end)),
                 TimeUnit.MILLISECONDS.toSeconds(end) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(end)));
 
-        Log.d("Cut", "startString: "+startString);
-        Log.d("Cut", "endString: "+endString);
+        Log.d("CutLive", "startString: "+startString);
+        Log.d("CutLive", "endString: "+endString);
 
         String[] cmd = new String[]{"-y", "-i", path + name, "-ss", startString, "-vcodec", "copy",
                 "-acodec", "copy", "-t", endString, "-strict", "-2", path + n +"_"+livingFileCount+".mp4"};
 
-        Log.d("Cut", "CutFile: "+endString);
+        Log.d("CutLive", "CutFile: "+endString);
         try {
             ffmpeg.execute(cmd, new FFmpegExecuteResponseHandler() {
                 @Override
                 public void onSuccess(String message) {
-                    Log.i("VideoEditActivity", "Success " + message);
+                    Log.i("CutLive", "Success " + message);
                     // is_video_generated_ = true;
                 }
 
                 @Override
                 public void onProgress(String message) {
-                    Log.i("VideoEditActivity", "Progress updated " + message);
+                    Log.i("CutLive", "Progress updated " + message);
                 }
 
                 @Override
                 public void onFailure(String message) {
-                    Log.e("VideoEditActivity", "ERROR! " + message);
+                    Log.e("CutLive", "ERROR! " + message);
                 }
 
                 @Override
@@ -692,7 +710,7 @@ public class Camera2VideoFragment_live extends Fragment
 
                 @Override
                 public void onFinish() {
-                    Log.i("VideoEditActivity", "Finished");
+                    Log.i("CutLive", "Finished");
 //                            progress_dialog_.hide();
 //
 //                            Intent intent = new Intent(getApplicationContext(), VideoPlayActivity.class);
@@ -706,10 +724,54 @@ public class Camera2VideoFragment_live extends Fragment
 
     }
 
+
+    private void uploadHTTP(String _fileURL,
+                            String _dur){
+
+        Log.d("HTTP", "_fileURL: "+ _fileURL);
+        String _fileName = _fileURL.substring(_fileURL.indexOf("Live")+1);
+
+        HttpPostRequest getRequest;
+
+        try {
+            getRequest = new HttpPostRequest("UTF-8");
+
+            Log.d("HTTP", "fileURL: "+ _fileURL);
+            Log.d("HTTP", "name: "+ _fileName);
+            Log.d("HTTP", "duration: "+ _dur);
+
+            String httpResult = getRequest.execute("clip", _fileURL, _fileName, _sessionKey, _sid, _dur).get();
+            Log.d("HTTP", "Final Result: "+ httpResult);
+
+//            if (httpResult.equals("200")){
+//                uploadSuccess = true;
+//            } else {
+//                uploadSuccess = false;
+//            }
+
+        } catch (ExecutionException|InterruptedException e){
+            Log.d("HTTP", "Error");
+            e.printStackTrace();
+        }
+
+        // delete the file
+        File f = new File(_fileURL);
+        f.delete();
+    }
+
+
     private String getVideoFilePath(Context context) {
         final File dir = context.getExternalFilesDir(null);
         return (dir == null ? "" : (dir.getAbsolutePath() + "/"))
                 +"Live" +System.currentTimeMillis() + ".mp4";
+    }
+
+    private String getVideoFilePath2(String oldPath, int num) {
+        Log.d("LIVE", oldPath);
+        Log.d("LIVE", ""+num);
+        Log.d("LIVE", oldPath.substring(0, oldPath.indexOf(".mp4")));
+
+        return oldPath.substring(0, oldPath.indexOf(".mp4"))+"_"+num+".mp4";
     }
 
     private void startRecordingVideo() {
@@ -720,7 +782,7 @@ public class Camera2VideoFragment_live extends Fragment
         }
         try {
             closePreviewSession();
-            setUpMediaRecorder();
+            setUpMediaRecorder("New");
 
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
             assert texture != null;
@@ -771,13 +833,27 @@ public class Camera2VideoFragment_live extends Fragment
             e.printStackTrace();
         }
 
+
+        getSessionHTTP = new HttpPostRequest("UTF-8");
+        try {
+            Log.d("HTTP", "Start to get sid ");
+
+            String httpResult = getSessionHTTP.execute("sid", _sessionKey, mNextVideoAbsolutePath, "Description").get();
+            Log.d("HTTP", "Get sid: " + httpResult);
+            _sid = httpResult;
+
+        } catch (ExecutionException | InterruptedException e) {
+            Log.d("HTTP", "Cannot get sid");
+            e.printStackTrace();
+        }
+
     }
     private void startRecordingVideo2() {
 
         try {
             //closePreviewSession();
             Log.d("timing","Before setup");
-            setUpMediaRecorder();
+            setUpMediaRecorder("Live");
             Log.d("timing","After setup");
 
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
@@ -847,10 +923,11 @@ public class Camera2VideoFragment_live extends Fragment
         // Stop recording
         mMediaRecorder.stop();
         mMediaRecorder.reset();
+        uploadHTTP(mNextVideoAbsolutePath, "3000");
 
         Activity activity = getActivity();
         if (null != activity) {
-            Toast.makeText(activity, "Video saved: " + mNextVideoAbsolutePath,
+            Toast.makeText(activity, "Live mode is finished!",
                     Toast.LENGTH_SHORT).show();
             Log.d("TAG", "Video saved: " + mNextVideoAbsolutePath);
         }
@@ -862,7 +939,8 @@ public class Camera2VideoFragment_live extends Fragment
         //mMediaRecorder.stop();
         Log.d("timing", "before reset");
         mMediaRecorder.reset();
-        mNextVideoAbsolutePath = null;
+        uploadHTTP(mNextVideoAbsolutePath, "3000");
+//        mNextVideoAbsolutePath = null;
         Log.d("timing", "after reset");
     }
 
