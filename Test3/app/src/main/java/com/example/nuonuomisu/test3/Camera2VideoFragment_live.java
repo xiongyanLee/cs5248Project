@@ -227,6 +227,9 @@ public class Camera2VideoFragment_live extends Fragment
     }
 
     private TextView myMode;
+    private TextView mTimerTextView;
+    private Long mVideoLength;
+
     /**
      * In this sample, we choose a video size with 3x4 aspect ratio. Also, we don't use sizes
      * larger than 1080p, since MediaRecorder cannot handle such a high-resolution video.
@@ -287,6 +290,7 @@ public class Camera2VideoFragment_live extends Fragment
         mButtonVideo = (Button) view.findViewById(R.id.video);
         mButtonVideo.setOnClickListener(this);
         myMode = (TextView) view.findViewById(R.id.modeView);
+        mTimerTextView = (TextView) view.findViewById(R.id.timeView);
         myMode.setText("Live Mode");
 
 //        view.findViewById(R.id.info).setOnClickListener(this);
@@ -571,6 +575,47 @@ public class Camera2VideoFragment_live extends Fragment
         mTextureView.setTransform(matrix);
     }
 
+    private long startTime = 0;
+    private Handler timerHandler= new Handler();;
+    private Runnable timerRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            long millis = System.currentTimeMillis() - startTime;
+            int seconds = (int) (millis / 1000);
+            int minutes = seconds / 60;
+            int hours = minutes / 60;
+            seconds = seconds % 60;
+
+            mTimerTextView.setText(String.format("%02d:%02d:%02d",hours, minutes, seconds));
+
+//            mTimerTextView.setText(Integer.toString(seconds));
+//
+            if (seconds%3 == 0 && seconds!= 0)
+            {
+                Log.d("TIME", "3 seconds");
+
+//                mTimerTextView.setText("3 SECONDS!!!!!!!!!");
+//
+//                cutVideo(mNextVideoAbsolutePath);
+//                livingFileCount++;
+            }
+            timerHandler.postDelayed(this, 500);
+        }
+    };
+
+
+    private void startTimer(){
+        startTime = System.currentTimeMillis();
+        timerHandler.postDelayed(timerRunnable, 0);
+    }
+
+    private void stopTimer(){
+        timerHandler.removeCallbacks(timerRunnable);
+        mTimerTextView.setText(String.format("00:00:00"));
+
+    }
+
     private void setUpMediaRecorder(String tag) throws IOException {
         final Activity activity = getActivity();
         if (null == activity) {
@@ -605,6 +650,7 @@ public class Camera2VideoFragment_live extends Fragment
                 break;
         }
 
+
         mMediaRecorder.setMaxDuration(3 * 1000);
 
         mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -613,9 +659,7 @@ public class Camera2VideoFragment_live extends Fragment
                 if(what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
                     Log.d("CutLive", "3 second now!!!!");
                     livingFileCount++;
-//                    cutVideo(mNextVideoAbsolutePath);
                     stopRecordingVideo2();
-
                     startRecordingVideo2();
                 }
             }
@@ -679,11 +723,12 @@ public class Camera2VideoFragment_live extends Fragment
 
         Log.d("CutLive", "startString: "+startString);
         Log.d("CutLive", "endString: "+endString);
+        Log.d("CutLive", "full: "+path + name);
 
         String[] cmd = new String[]{"-y", "-i", path + name, "-ss", startString, "-vcodec", "copy",
                 "-acodec", "copy", "-t", endString, "-strict", "-2", path + n +"_"+livingFileCount+".mp4"};
 
-        Log.d("CutLive", "CutFile: "+endString);
+        Log.d("CutLive", "CutFile: "+cmd);
         try {
             ffmpeg.execute(cmd, new FFmpegExecuteResponseHandler() {
                 @Override
@@ -816,6 +861,7 @@ public class Camera2VideoFragment_live extends Fragment
                             mIsRecordingVideo = true;
 
                             // Start recording
+                            startTimer();
                             mMediaRecorder.start();
                         }
                     });
@@ -923,7 +969,11 @@ public class Camera2VideoFragment_live extends Fragment
         // Stop recording
         mMediaRecorder.stop();
         mMediaRecorder.reset();
+        stopTimer();
         uploadHTTP(mNextVideoAbsolutePath, "3000");
+
+        File f = new File(mTargetAbsolutePath);
+        f.delete();
 
         Activity activity = getActivity();
         if (null != activity) {

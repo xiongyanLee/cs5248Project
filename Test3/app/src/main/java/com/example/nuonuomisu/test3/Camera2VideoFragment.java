@@ -277,7 +277,7 @@ public class Camera2VideoFragment extends Fragment
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
         mButtonVideo = (Button) view.findViewById(R.id.video);
         mButtonVideo.setOnClickListener(this);
-
+        mTimerTextView = (TextView) view.findViewById(R.id.timeView);
         myMode = (TextView) view.findViewById(R.id.modeView);
         myMode.setText("Recording Mode");
     }
@@ -299,7 +299,37 @@ public class Camera2VideoFragment extends Fragment
         stopBackgroundThread();
         super.onPause();
     }
+    private TextView mTimerTextView;
 
+    private long startTime = 0;
+    private Handler timerHandler= new Handler();;
+    private Runnable timerRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            long millis = System.currentTimeMillis() - startTime;
+            int seconds = (int) (millis / 1000);
+            int minutes = seconds / 60;
+            int hours = minutes / 60;
+            seconds = seconds % 60;
+
+            mTimerTextView.setText(String.format("%02d:%02d:%02d",hours, minutes, seconds));
+
+            timerHandler.postDelayed(this, 500);
+        }
+    };
+
+
+    private void startTimer(){
+        startTime = System.currentTimeMillis();
+        timerHandler.postDelayed(timerRunnable, 0);
+    }
+
+    private void stopTimer(){
+        timerHandler.removeCallbacks(timerRunnable);
+        mTimerTextView.setText(String.format("00:00:00"));
+
+    }
 
 
     @Override
@@ -585,8 +615,9 @@ public class Camera2VideoFragment extends Fragment
         }
         Log.d("path", mNextVideoAbsolutePath);
         mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
-        mMediaRecorder.setVideoEncodingBitRate(10000000);
+        mMediaRecorder.setVideoEncodingBitRate(5000000);
         mMediaRecorder.setVideoFrameRate(30);
+        mMediaRecorder.setVideoSize(1280, 720);
         mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
@@ -651,6 +682,7 @@ public class Camera2VideoFragment extends Fragment
                             mIsRecordingVideo = true;
 
                             // Start recording
+                            startTimer();
                             mMediaRecorder.start();
                         }
                     });
@@ -685,7 +717,7 @@ public class Camera2VideoFragment extends Fragment
         // Stop recording
         mMediaRecorder.stop();
         mMediaRecorder.reset();
-
+        stopTimer();
         Activity activity = getActivity();
         if (null != activity) {
             Toast.makeText(activity, "Video saved: " + mNextVideoAbsolutePath,
