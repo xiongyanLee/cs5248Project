@@ -11,6 +11,11 @@ import android.widget.ArrayAdapter;
 import android.widget.HeaderViewListAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
@@ -30,10 +35,6 @@ public class Playerlist extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playerlist);
         mListView = (ListView) findViewById(R.id.video_list);
-        adapter=new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1,
-                listItems);
-        setListAdapter(adapter);
         mListView.setClickable(true);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -49,10 +50,16 @@ public class Playerlist extends AppCompatActivity {
 
     public void updatePlayerList(View view) {
         get_video_list();
-        listItems.add("my name is 2");
-        listItems.add("my name is 3");
+        for (int i=0; i<listItems.size(); i++){
+            Log.d("HTTP", "name is "+ listItems.get(i));
+
+        }
+        adapter=new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1,
+                listItems);
+        setListAdapter(adapter);
         //listItems.remove(0);
-        adapter.notifyDataSetChanged();
+        //adapter.notifyDataSetChanged();
     }
 
     public void get_video_list(){
@@ -60,17 +67,28 @@ public class Playerlist extends AppCompatActivity {
         ArrayList<String> video_list = new ArrayList<String>();
         HttpPostRequest get_video = new HttpPostRequest("UTF-8");
             try {
-                Log.d("HTTP", "Start to get sid ");
-
                 String httpResult = get_video.execute("index").get();
-                Log.d("HTTP", "Get index: " + httpResult);
                 response = httpResult;
 
             } catch (ExecutionException | InterruptedException e) {
                 Log.d("HTTP", "Cannot get sid");
                 e.printStackTrace();
             }
-        listItems.add("myname is 1");
+
+        try{
+            JSONArray jarray = new JSONArray(response);
+
+            for (int i = 0; i < jarray.length(); i++) {
+                JSONObject jsonobject = jarray.getJSONObject(i);
+                String id = jsonobject.getString("id");
+                String name = jsonobject.getString("name");
+                video_list.add(name);
+            }
+        }catch(JSONException e) {
+            e.printStackTrace();
+        }
+
+        listItems = video_list;
     }
 
     protected ListView getListView() {
@@ -93,19 +111,7 @@ public class Playerlist extends AppCompatActivity {
     }
 
     public void playerActivity(int position){
-        String uri="";
-        HttpPostRequest get_mpd = new HttpPostRequest("UTF-8");
-        try {
-            Log.d("HTTP", "Start to get mpd ");
-
-            String httpResult = get_mpd.execute("mpd", "sid", listItems.get(position)).get();
-            Log.d("HTTP", "Get mpd: " + httpResult);
-            uri = httpResult;
-
-        } catch (ExecutionException | InterruptedException e) {
-            Log.d("HTTP", "Cannot get sid");
-            e.printStackTrace();
-        }
+        String uri = "http://119.28.108.175:5000/view/"+Integer.toString(position)+"/.mpd";
         Intent intent  = new Intent(this, Player.class);
         intent.putExtra("uri",uri);
         startActivity(intent);

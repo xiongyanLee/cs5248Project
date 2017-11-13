@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -55,8 +54,6 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
                 return postGetSid(params[1], params[2], params[3]);
             case "index":
                 return getIndex();
-            case "mpd":
-                return getMpd(params[1], params[2]);
             default:
                 log.d("HTTP", "Wrong http command");
                 return "Wrong http command";
@@ -334,7 +331,7 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
         try {
 
             // open a URL connection to the Servlet
-            URL url = new URL("http://119.28.108.175:5000/view/6/origin/test");
+            URL url = new URL("http://119.28.108.175:5000/stream");
 
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -349,49 +346,14 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
                 inputLine = "";
             }
             log.d("HTTP", "CODE: "+conn.getResponseCode());
-            Log.d("HTTP" , "msg:" + inputLine);
+
 
             conn.disconnect();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        Log.d("HTTP", inputLine);
         return inputLine;
-
-    }
-    private String getMpd(String sid, String videoName){
-        HttpURLConnection conn = null;
-        String inputLine = "";
-        try {
-            // open a URL connection to the Servlet
-            URL url = new URL("http://119.28.108.175:5000/view/"+sid+"/origin/"+videoName);
-
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-
-            if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-                String line;
-                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line = br.readLine()) != null) {
-                    inputLine += line;
-                }
-            } else {
-                inputLine = "";
-            }
-            log.d("HTTP", "CODE: "+conn.getResponseCode());
-            Log.d("HTTP" , "msg:" + inputLine);
-
-            conn.disconnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Log.d("HTTP", inputLine);
-        if (videoName.equals("my name is 2")){
-            return "http://119.28.108.175:5000/view/46/origin/a.mpd";
-        }
-        return "http://yt-dash-mse-test.commondatastorage.googleapis.com/media/car-20120827-manifest.mpd";
 
     }
 
