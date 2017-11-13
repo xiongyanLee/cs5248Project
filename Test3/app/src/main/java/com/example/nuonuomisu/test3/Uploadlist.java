@@ -372,7 +372,7 @@ public class Uploadlist extends AppCompatActivity {
         long timeInMillisec = Long.parseLong(time );
         retriever.release();
 
-        if (_sid.equals("-2")) {
+        if (_sid.equals("-2") || _sid.equals("Invalid")) {
             getSessionHTTP = new HttpPostRequest("UTF-8");
             try {
                 Log.d("HTTP", "Start to get sid ");
@@ -629,54 +629,6 @@ public class Uploadlist extends AppCompatActivity {
 
             count = 1;
         }
-        
-//        boolean uploadingFail = false;
-//
-//        for (int i = 0; i< count; i++){
-//
-//            Log.d("HTTP", "Number: "+ i);
-//
-//            long dur = 0;
-//            if (i==count-1){
-//                dur = lastDuration;
-//            }else {
-//                dur = 3000;
-//            }
-//
-//            //Some url endpoint that you may have
-//
-//            //String to place our result in
-//            String result;
-//            //Instantiate new instance of our class
-//            HttpPostRequest getRequest;
-//            //Perform the doInBackground method, passing in our url
-//
-//            String _filePath = path + n + "_" + i + ".mp4";
-//            String _fileName = n + "_" + i + ".mp4";
-//            String _session = "";
-//            String _dur = ""+dur;
-//
-//            try {
-//                getRequest = new HttpPostRequest("UTF-8");
-//
-//                Log.d("HTTP", "path: "+ _filePath);
-//                Log.d("HTTP", "name: "+ _fileName);
-//                Log.d("HTTP", "session: "+ _session);
-//                Log.d("HTTP", "duration: "+ _dur);
-//
-//                result = getRequest.execute(_filePath, _fileName, _session, _dur).get();
-//
-//                if (result != "200"){
-//                    uploadingFail = true;
-//                    break;
-//                }
-//                Log.d("HTTP", "Final Reuslt: "+ result);
-//            } catch (ExecutionException |InterruptedException|IOException e){
-//                Log.d("HTTP", "Error");
-//                e.printStackTrace();
-//            }
-//
-//        }
         return true;
 
     }
