@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -53,6 +52,8 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
                 return postGetSession(params[1]);
             case "sid":
                 return postGetSid(params[1], params[2], params[3]);
+            case "index":
+                return getIndex();
             default:
                 log.d("HTTP", "Wrong http command");
                 return "Wrong http command";
@@ -322,6 +323,38 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
 
         return inputLine;
+    }
+
+    private String getIndex(){
+        HttpURLConnection conn = null;
+        String inputLine = "";
+        try {
+
+            // open a URL connection to the Servlet
+            URL url = new URL("http://119.28.108.175:5000/stream");
+
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+                String line;
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                while ((line = br.readLine()) != null) {
+                    inputLine += line;
+                }
+            } else {
+                inputLine = "";
+            }
+            log.d("HTTP", "CODE: "+conn.getResponseCode());
+
+
+            conn.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return inputLine;
+
     }
 
 }

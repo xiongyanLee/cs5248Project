@@ -13,11 +13,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
+
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -361,6 +364,12 @@ public class Uploadlist extends AppCompatActivity {
         });
     }
 
+    private void updateUploadingStatus(int num){
+        TextView  countUpload = (TextView) findViewById(R.id.textView4);
+
+        countUpload.setText(""+num);
+
+    }
     private boolean cutAndUploadVideo(String path, String name){
 
         String _sid= readSid(name);   // new: -2
@@ -372,8 +381,7 @@ public class Uploadlist extends AppCompatActivity {
         long timeInMillisec = Long.parseLong(time );
         retriever.release();
 
-        if (_sid.equals("-2")) {
-            // new sid
+        if (_sid.equals("-2") || _sid.equals("Invalid")) {
             getSessionHTTP = new HttpPostRequest("UTF-8");
             try {
                 Log.d("HTTP", "Start to get sid ");
@@ -446,8 +454,11 @@ public class Uploadlist extends AppCompatActivity {
 
                 Log.d("Cut", "Resume postition: " + resumePos);
             }
-            start = resumePos * 3000;
-            end = resumePos * 3000 + 3000;
+            count = resumePos;
+
+            countTime = timeInMillisec - count * 3000;
+
+            updateUploadingStatus(count);
 
             count = resumePos;
             countTime -= 3000 * resumePos;
@@ -459,6 +470,7 @@ public class Uploadlist extends AppCompatActivity {
 
                 /// Cut  ------------------------------------------
                 Log.d("CUT", "=========Start to Cut file========");
+                Log.d("CUT", "Time: "+countTime);
 
                 start = count * 3000;
                 if (countTime > 3000) {
@@ -567,18 +579,18 @@ public class Uploadlist extends AppCompatActivity {
                 }
 
                 // delete the file
-                File f = new File(_fileURL);
-                f.delete();
-                Log.d("HTTP", _fileName + " is delete successfully");
-
-                if (!uploadSuccess) {
-                    recordDown(path+name, "Failed", Integer.toString(count), _sid);
-                    Log.d("HTTP", _fileName + " uploading failed");
-                    return false;
-                } else {
-                    recordDown(path+name, "Finished", "-11", _sid);
-                    Log.d("HTTP", _fileName + " is uploaded successfully");
-                }
+//                File f = new File(_fileURL);
+//                f.delete();
+//                Log.d("HTTP", _fileName + " is delete successfully");
+//
+//                if (!uploadSuccess) {
+//                    recordDown(path+name, "Failed", Integer.toString(count), _sid);
+//                    Log.d("HTTP", _fileName + " uploading failed");
+//                    return false;
+//                } else {
+//                    recordDown(path+name, "Finished", "-2", _sid);
+//                    Log.d("HTTP", _fileName + " is uploaded successfully");
+//                }
 
                 count++;
                 countTime -= 3000;
@@ -640,57 +652,7 @@ public class Uploadlist extends AppCompatActivity {
 
             count = 1;
         }
-        
-//        boolean uploadingFail = false;
-//
-//        for (int i = 0; i< count; i++){
-//
-//            Log.d("HTTP", "Number: "+ i);
-//
-//            long dur = 0;
-//            if (i==count-1){
-//                dur = lastDuration;
-//            }else {
-//                dur = 3000;
-//            }
-//
-//            //Some url endpoint that you may have
-//
-//            //String to place our result in
-//            String result;
-//            //Instantiate new instance of our class
-//            HttpPostRequest getRequest;
-//            //Perform the doInBackground method, passing in our url
-//
-//            String _filePath = path + n + "_" + i + ".mp4";
-//            String _fileName = n + "_" + i + ".mp4";
-//            String _session = "";
-//            String _dur = ""+dur;
-//
-//            try {
-//                getRequest = new HttpPostRequest("UTF-8");
-//
-//                Log.d("HTTP", "path: "+ _filePath);
-//                Log.d("HTTP", "name: "+ _fileName);
-//                Log.d("HTTP", "session: "+ _session);
-//                Log.d("HTTP", "duration: "+ _dur);
-//
-//                result = getRequest.execute(_filePath, _fileName, _session, _dur).get();
-//
-//                if (result != "200"){
-//                    uploadingFail = true;
-//                    break;
-//                }
-//                Log.d("HTTP", "Final Reuslt: "+ result);
-//            } catch (ExecutionException |InterruptedException|IOException e){
-//                Log.d("HTTP", "Error");
-//                e.printStackTrace();
-//            }
-//
-//        }
-
         return true;
-
     }
 
     private void recordDown(String fullPath, String status, String stopPoint, String sid){
