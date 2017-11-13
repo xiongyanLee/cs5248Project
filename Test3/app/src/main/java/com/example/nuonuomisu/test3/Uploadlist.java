@@ -363,8 +363,8 @@ public class Uploadlist extends AppCompatActivity {
 
     private boolean cutAndUploadVideo(String path, String name){
 
-        String _sid= readSid(name);
-
+        String _sid= readSid(name);   // new: -2
+        int resumePos = Integer.parseInt(readPosition(name)); // new -1    finish -11
 
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(this, Uri.fromFile(new File(path+name)));
@@ -373,6 +373,7 @@ public class Uploadlist extends AppCompatActivity {
         retriever.release();
 
         if (_sid.equals("-2")) {
+            // new sid
             getSessionHTTP = new HttpPostRequest("UTF-8");
             try {
                 Log.d("HTTP", "Start to get sid ");
@@ -387,7 +388,16 @@ public class Uploadlist extends AppCompatActivity {
             }
         }
         Log.d("HTTP", "Sid: "+_sid);
+        Log.d("HTTP", "resumePos: "+resumePos);
 
+        if (resumePos == -11 || resumePos == -2){ // load before
+            Log.d("HTTP", "Uploaded before!!!");
+            return true;
+        }
+
+        if (resumePos == -1){ // new
+            resumePos = 0;
+        }
 
         //--------------------
         Log.d("Cut", "Full Video Length: " + Long.toString(timeInMillisec));
@@ -431,15 +441,16 @@ public class Uploadlist extends AppCompatActivity {
 
             long start = 0;
             long end = 3000;
-            int resumePos = 0;
-
 
             if (readStatus(name).equals("Failed")){
-                resumePos = Integer.parseInt(readPosition(name));
+
                 Log.d("Cut", "Resume postition: " + resumePos);
             }
             start = resumePos * 3000;
             end = resumePos * 3000 + 3000;
+
+            count = resumePos;
+            countTime -= 3000 * resumePos;
 
             while (countTime > 0) {
                 String _fileURL = path + n + "_" + count + ".mp4";
@@ -565,7 +576,7 @@ public class Uploadlist extends AppCompatActivity {
                     Log.d("HTTP", _fileName + " uploading failed");
                     return false;
                 } else {
-                    recordDown(path+name, "Finished", "-2", _sid);
+                    recordDown(path+name, "Finished", "-11", _sid);
                     Log.d("HTTP", _fileName + " is uploaded successfully");
                 }
 
@@ -623,7 +634,7 @@ public class Uploadlist extends AppCompatActivity {
                 Log.d("HTTP", _fileName + " uploading failed");
                 return false;
             } else {
-                recordDown(path+name, "Finished", "-2", _sid);
+                recordDown(path+name, "Finished", "-11", _sid);
                 Log.d("HTTP", _fileName + " is uploaded successfully");
             }
 
@@ -677,6 +688,7 @@ public class Uploadlist extends AppCompatActivity {
 //            }
 //
 //        }
+
         return true;
 
     }
