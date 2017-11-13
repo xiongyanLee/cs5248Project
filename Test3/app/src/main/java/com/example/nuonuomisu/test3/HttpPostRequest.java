@@ -94,7 +94,7 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
 
                 // open a URL connection to the Servlet
                 FileInputStream fileInputStream = new FileInputStream(sourceFile);
-                URL url = new URL("http://119.28.108.175:5000/streaming/");
+                URL url = new URL("http://monterosa.d2.comp.nus.edu.sg:80/streaming/");
 
                 // Open a HTTP  connection to  the URL
                 conn = (HttpURLConnection) url.openConnection();
@@ -226,7 +226,7 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
         try {
 
             // open a URL connection to the Servlet
-            URL url = new URL("http://119.28.108.175:5000/login/");
+            URL url = new URL("http://monterosa.d2.comp.nus.edu.sg:80/login/");
 
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
@@ -280,7 +280,7 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
         try {
 
             // open a URL connection to the Servlet
-            URL url = new URL("http://119.28.108.175:5000/stream/");
+            URL url = new URL("http://monterosa.d2.comp.nus.edu.sg:80/stream/");
 
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
@@ -331,7 +331,7 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
         try {
 
             // open a URL connection to the Servlet
-            URL url = new URL("http://119.28.108.175:5000/stream");
+            URL url = new URL("http://monterosa.d2.comp.nus.edu.sg:80/stream");
 
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");

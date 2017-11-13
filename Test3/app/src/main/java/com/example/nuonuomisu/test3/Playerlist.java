@@ -111,7 +111,7 @@ public class Playerlist extends AppCompatActivity {
     }
 
     public void playerActivity(int position){
-        String uri = "http://119.28.108.175:5000/view/"+Integer.toString(position)+"/.mpd";
+        String uri = "http://monterosa.d2.comp.nus.edu.sg:80/view/"+Integer.toString(position)+"/.mpd";
         Intent intent  = new Intent(this, Player.class);
         intent.putExtra("uri",uri);
         startActivity(intent);
