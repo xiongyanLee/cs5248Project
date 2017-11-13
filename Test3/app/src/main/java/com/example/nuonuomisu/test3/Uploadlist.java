@@ -13,14 +13,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
-
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -365,9 +362,9 @@ public class Uploadlist extends AppCompatActivity {
     }
 
     private void updateUploadingStatus(int num){
-        TextView  countUpload = (TextView) findViewById(R.id.textView4);
+        //TextView  countUpload = (TextView) findViewById(R.id.textView4);
 
-        countUpload.setText(""+num);
+        //countUpload.setText(""+num);
 
     }
     private boolean cutAndUploadVideo(String path, String name){
@@ -458,11 +455,6 @@ public class Uploadlist extends AppCompatActivity {
 
             countTime = timeInMillisec - count * 3000;
 
-            updateUploadingStatus(count);
-
-            count = resumePos;
-            countTime -= 3000 * resumePos;
-
             while (countTime > 0) {
                 String _fileURL = path + n + "_" + count + ".mp4";
                 String _fileName = n + "_" + count + ".mp4";
@@ -474,11 +466,13 @@ public class Uploadlist extends AppCompatActivity {
 
                 start = count * 3000;
                 if (countTime > 3000) {
-                    end = count * 3000 + 3000;
-                    _dur = "3000";
+                    end = start + 3000;
+                    _dur = "3";
                 } else {
                     end = timeInMillisec;
-                    _dur = Long.toString(timeInMillisec - start);
+                    _dur = Long.toString((timeInMillisec - start)/1000);
+                    if(_dur == "0")
+                        _dur = "1";
                 }
 
                 String startString = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(start),
@@ -488,13 +482,14 @@ public class Uploadlist extends AppCompatActivity {
                         TimeUnit.MILLISECONDS.toMinutes(end) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(end)),
                         TimeUnit.MILLISECONDS.toSeconds(end) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(end)));
 
-                Log.d("HTTP", "name: "+ _fileURL);
+                Log.d("CUT", "name: "+ _fileURL);
                 Log.d("CUT", "Start Point: "+startString);
                 Log.d("CUT", "End Point: "+endString);
                 Log.d("CUT", "Duration:" + _dur);
 
                 String[] cmd = new String[]{"-y", "-i", path + name, "-ss", startString, "-vcodec", "copy",
-                        "-acodec", "copy", "-t", endString, "-strict", "-2", _fileURL};
+                        "-t", _dur, "-strict", "-2", _fileURL};
+
 
                 try {
                     ffmpeg.execute(cmd, new FFmpegExecuteResponseHandler() {
@@ -524,11 +519,6 @@ public class Uploadlist extends AppCompatActivity {
                         public void onFinish() {
 
                             Log.i("VideoEditActivity", "Finished");
-//                            progress_dialog_.hide();
-//
-//                            Intent intent = new Intent(getApplicationContext(), VideoPlayActivity.class);
-//                            intent.putExtra("media", edited_video_path_);
-//                            startActivity(intent);
                         }
                     });
                     cutSuccess = true;
@@ -578,19 +568,19 @@ public class Uploadlist extends AppCompatActivity {
                     uploadSuccess = false;
                 }
 
-                // delete the file
-//                File f = new File(_fileURL);
-//                f.delete();
-//                Log.d("HTTP", _fileName + " is delete successfully");
-//
-//                if (!uploadSuccess) {
-//                    recordDown(path+name, "Failed", Integer.toString(count), _sid);
-//                    Log.d("HTTP", _fileName + " uploading failed");
-//                    return false;
-//                } else {
-//                    recordDown(path+name, "Finished", "-2", _sid);
-//                    Log.d("HTTP", _fileName + " is uploaded successfully");
-//                }
+                 //delete the file
+                File f = new File(_fileURL);
+                f.delete();
+                Log.d("HTTP", _fileName + " is delete successfully");
+
+                if (!uploadSuccess) {
+                    recordDown(path+name, "Failed", Integer.toString(count), _sid);
+                    Log.d("HTTP", _fileName + " uploading failed");
+                    return false;
+                } else {
+                    recordDown(path+name, "Finished", "-2", _sid);
+                    Log.d("HTTP", _fileName + " is uploaded successfully");
+                }
 
                 count++;
                 countTime -= 3000;
