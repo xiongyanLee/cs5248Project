@@ -628,6 +628,7 @@ public class Camera2VideoFragment_live extends Fragment
 
             mNextVideoAbsolutePath = getVideoFilePath(getActivity());
             mTargetAbsolutePath = mNextVideoAbsolutePath;
+            mNextVideoAbsolutePath = mNextVideoAbsolutePath.substring(0, mNextVideoAbsolutePath.indexOf(".mp4"))+"_0.mp4";
         }
         if (tag == "Live"){
             mNextVideoAbsolutePath = getVideoFilePath2(mTargetAbsolutePath, livingFileCount);
@@ -788,20 +789,14 @@ public class Camera2VideoFragment_live extends Fragment
             String httpResult = getRequest.execute("clip", _fileURL, _fileName, _sessionKey, _sid, _dur).get();
             Log.d("HTTP", "Final Result: "+ httpResult);
 
-//            if (httpResult.equals("200")){
-//                uploadSuccess = true;
-//            } else {
-//                uploadSuccess = false;
-//            }
-
         } catch (ExecutionException|InterruptedException e){
             Log.d("HTTP", "Error");
             e.printStackTrace();
         }
 
         // delete the file
-        File f = new File(_fileURL);
-        f.delete();
+//        File f = new File(_fileURL);
+//        f.delete();
     }
 
 
@@ -819,6 +814,9 @@ public class Camera2VideoFragment_live extends Fragment
         return oldPath.substring(0, oldPath.indexOf(".mp4"))+"_"+num+".mp4";
     }
 
+    private int errorCount = 0;
+    private int errorMAX = 10;
+
     private void startRecordingVideo() {
 
         livingFileCount = 0;
@@ -826,6 +824,7 @@ public class Camera2VideoFragment_live extends Fragment
             return;
         }
         try {
+            errorCount = 0;
             closePreviewSession();
             setUpMediaRecorder("New");
 
@@ -970,10 +969,26 @@ public class Camera2VideoFragment_live extends Fragment
         mMediaRecorder.stop();
         mMediaRecorder.reset();
         stopTimer();
-        uploadHTTP(mNextVideoAbsolutePath, "3000");
 
-        File f = new File(mTargetAbsolutePath);
-        f.delete();
+        Log.d("timing","before http");
+
+//        final Runnable r = new Runnable(){
+//            public void run() {
+//                uploadHTTP(mNextVideoAbsolutePath, "3000");
+//            }
+//        };
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                uploadHTTP(mNextVideoAbsolutePath, "3000");
+            }
+        });
+        t.start();
+
+        Log.d("timing","after http");
+
+//        File f = new File(mTargetAbsolutePath);
+//        f.delete();
 
         Activity activity = getActivity();
         if (null != activity) {
@@ -989,8 +1004,26 @@ public class Camera2VideoFragment_live extends Fragment
         //mMediaRecorder.stop();
         Log.d("timing", "before reset");
         mMediaRecorder.reset();
-        uploadHTTP(mNextVideoAbsolutePath, "3000");
-//        mNextVideoAbsolutePath = null;
+
+        Log.d("timing","before http");
+
+//        final Runnable r = new Runnable(){
+//            public void run() {
+//                uploadHTTP(mNextVideoAbsolutePath, "3000");
+//            }
+//        };
+
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                uploadHTTP(mNextVideoAbsolutePath, "3000");
+            }
+        });
+        t.start();
+
+        Log.d("timing","after http");
+
+
         Log.d("timing", "after reset");
     }
 

@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.FFmpegExecuteResponseHandler;
@@ -44,10 +45,17 @@ public class Uploadlist extends AppCompatActivity {
     private String _sessionKey = "uubyn2w8wqizmj0g7vfrhkawsdg4opmy";
     private HttpPostRequest getSessionHTTP;
 
+    private TextView countUpload;
+    int count = 0;
+
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.uploadlist);
         mListView = (ListView) findViewById(R.id.upload_list);
+
+        countUpload = (TextView) findViewById(R.id.countUpload);
+
 
         refreshUpdateList2(path);
 
@@ -113,32 +121,41 @@ public class Uploadlist extends AppCompatActivity {
 
 
     private void refreshUpdateList2(String path){
+
         Log.d("Files", "Path: " + path);
         File directory = new File(path);
-        File[] files = directory.listFiles();
-        Log.d("Files", "Size: "+ files.length);
-        Vector<String> rlist = new Vector<>();
+
+        boolean success = false;
+        if (!directory.exists()) {
+            success = directory.mkdir();
+        } else {
+            success = true;
+        }
+
+        if (success) {
+            File[] files = directory.listFiles();
+            Log.d("Files", "Size: " + files.length);
+            Vector<String> rlist = new Vector<>();
 
 
-        for (int i = 0; i < files.length; i++)
-        {
-            if (files[i].getName().contains("Recording")
-                    &!files[i].getName().contains("_")
-                    &files[i].getName().contains(".mp4")){
-                rlist.add(files[i].getName());
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].getName().contains("Recording")
+                        & !files[i].getName().contains("_")
+                        & files[i].getName().contains(".mp4")) {
+                    rlist.add(files[i].getName());
+                }
             }
-        }
-        String[] values = new String[rlist.size()];
-        String[] desc = new String[rlist.size()];
+            String[] values = new String[rlist.size()];
+            String[] desc = new String[rlist.size()];
 
-        for (int i = 0; i < rlist.size(); i++)
-        {
-            values[i] = rlist.get(i);
-            desc[i] = readStatus(rlist.get(i));
-        }
+            for (int i = 0; i < rlist.size(); i++) {
+                values[i] = rlist.get(i);
+                desc[i] = readStatus(rlist.get(i));
+            }
 
-        CustomListAdapter adapter=new CustomListAdapter(this, values, desc);
-        mListView.setAdapter(adapter);
+            CustomListAdapter adapter = new CustomListAdapter(this, values, desc);
+            mListView.setAdapter(adapter);
+        }
     }
 
     private String readStatus(String file){
@@ -282,12 +299,21 @@ public class Uploadlist extends AppCompatActivity {
         // show the popup window
         popupWindow.showAtLocation(mainLayout, Gravity.CENTER, 0, 0);
 
+        int resumePos = Integer.parseInt(readPosition(fileName)); // new -1    finish -11
+
+        countUpload.setText("Consume at "+resumePos);
+
         popupView.findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
                 File f = new File(filePath + fileName);
                 f.delete();
+
+                File ftemp = new File(filePath + fileName.substring(0,fileName.indexOf(".mp4"))+"temp.txt");
+                ftemp.delete();
+
+
                 popupWindow.dismiss();
                 refreshUpdateList2(filePath);
             }
@@ -299,6 +325,7 @@ public class Uploadlist extends AppCompatActivity {
             public void onClick(View view) {
 
                 if (cutAndUploadVideo(filePath, fileName)){
+
                     popupWindow.dismiss();
                     uploadSuccessPopup(filePath);
                 } else {
@@ -306,10 +333,15 @@ public class Uploadlist extends AppCompatActivity {
                     uploadFailurePopup(filePath);
                 }
 
+                int re = Integer.parseInt(readPosition(fileName)); // new -1    finish -11
+
+                countUpload.setText("Consume at "+re);
+
             }
         });
 
     }
+
 
     public void uploadFailurePopup(final String filePath){
         RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.upload_list_layout);
@@ -409,7 +441,7 @@ public class Uploadlist extends AppCompatActivity {
         Log.d("Cut", "Original File: " + path + name);
 
         String n = name.substring(0, name.indexOf("."));
-        int count = 0;              // num of files
+        count = 0;            // num of files
 
         if (timeInMillisec > 3000) {
             boolean cutSuccess = false;
@@ -456,6 +488,7 @@ public class Uploadlist extends AppCompatActivity {
             countTime = timeInMillisec - count * 3000;
 
             while (countTime > 0) {
+
                 String _fileURL = path + n + "_" + count + ".mp4";
                 String _fileName = n + "_" + count + ".mp4";
                 String _dur = "";
@@ -642,6 +675,7 @@ public class Uploadlist extends AppCompatActivity {
 
             count = 1;
         }
+
         return true;
     }
 
