@@ -1,6 +1,5 @@
 package com.example.nuonuomisu.test3;
 
-import android.app.LauncherActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -111,7 +110,8 @@ public class Playerlist extends AppCompatActivity {
     }
 
     public void playerActivity(int position){
-        String uri = "http://119.28.108.175:5000/view/"+Integer.toString(position)+"/.mpd";
+        String uri = "http://monterosa.d2.comp.nus.edu.sg:32770/view/"+Integer.toString(position)+"/.mpd";
+        //String uri = "http://119.28.108.175:5000/view/64/b.mpd";
         Intent intent  = new Intent(this, Player.class);
         intent.putExtra("uri",uri);
         startActivity(intent);

@@ -401,15 +401,18 @@ public class Uploadlist extends AppCompatActivity {
     }
     private boolean cutAndUploadVideo(String path, String name){
 
+        // retrive resume position
         String _sid= readSid(name);   // new: -2
         int resumePos = Integer.parseInt(readPosition(name)); // new -1    finish -11
 
+        // retrive file lenght
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(this, Uri.fromFile(new File(path+name)));
         String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
         long timeInMillisec = Long.parseLong(time );
         retriever.release();
 
+        // Get SID if need
         if (_sid.equals("-2") || _sid.equals("Invalid")) {
             getSessionHTTP = new HttpPostRequest("UTF-8");
             try {
@@ -601,7 +604,7 @@ public class Uploadlist extends AppCompatActivity {
                     uploadSuccess = false;
                 }
 
-                 //delete the file
+                // delete the file
                 File f = new File(_fileURL);
                 f.delete();
                 Log.d("HTTP", _fileName + " is delete successfully");

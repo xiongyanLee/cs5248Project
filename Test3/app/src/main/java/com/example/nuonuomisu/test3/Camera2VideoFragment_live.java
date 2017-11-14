@@ -795,8 +795,8 @@ public class Camera2VideoFragment_live extends Fragment
         }
 
         // delete the file
-//        File f = new File(_fileURL);
-//        f.delete();
+        File f = new File(_fileURL);
+        f.delete();
     }
 
 
@@ -987,8 +987,8 @@ public class Camera2VideoFragment_live extends Fragment
 
         Log.d("timing","after http");
 
-//        File f = new File(mTargetAbsolutePath);
-//        f.delete();
+        File f = new File(mTargetAbsolutePath);
+        f.delete();
 
         Activity activity = getActivity();
         if (null != activity) {
