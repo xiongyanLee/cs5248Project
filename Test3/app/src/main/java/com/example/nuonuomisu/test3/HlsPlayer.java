@@ -16,24 +16,24 @@ import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.dash.DashChunkSource;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
+import com.google.android.exoplayer2.source.hls.DefaultHlsDataSourceFactory;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 /**
- * Created by xiongyan on 10/29/2017.
+ * Created by xiongyan on 11/15/2017.
  */
 
-public class Player extends AppCompatActivity {
+public class HlsPlayer extends AppCompatActivity {
+
     private static final DefaultBandwidthMeter BANDWIDTH_METER = new DefaultBandwidthMeter();
     private SimpleExoPlayer player;
     private SimpleExoPlayerView playerView;
@@ -51,8 +51,8 @@ public class Player extends AppCompatActivity {
         Intent intent = getIntent();
         Bundle passValues = intent.getExtras();
         if(passValues != null){
-        String uri_to_play = (String) passValues.get("uri");
-        uri = Uri.parse(uri_to_play);
+            String uri_to_play = (String) passValues.get("uri");
+            uri = Uri.parse(uri_to_play);
         }
         bandwidthview = findViewById(R.id.bandwidth);
         bandwidthview.setTextColor(Color.parseColor("#F0FFF0"));
@@ -113,7 +113,6 @@ public class Player extends AppCompatActivity {
             player.setPlayWhenReady(playWhenReady);
             player.seekTo(currentWindow, playbackPosition);
         }
-        //MediaSource mediaSource = buildMediaSource(Uri.parse(getString(R.string.media_url_dash2)));
         MediaSource mediaSource = buildMediaSource();
         player.prepare(mediaSource, true, false);
     }
@@ -131,11 +130,7 @@ public class Player extends AppCompatActivity {
     private MediaSource buildMediaSource() {
         DataSource.Factory dataSourceFactory =
                 new DefaultHttpDataSourceFactory("ua", BANDWIDTH_METER);
-        DashChunkSource.Factory dashChunkSourceFactory =
-                new DefaultDashChunkSource.Factory(dataSourceFactory);
-
-        return new DashMediaSource(uri, dataSourceFactory,
-                dashChunkSourceFactory, null, null);
+        return new HlsMediaSource(uri, dataSourceFactory, null, null);
     }
 
     @SuppressLint("InlinedApi")

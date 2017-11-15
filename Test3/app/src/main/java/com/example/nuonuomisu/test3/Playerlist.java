@@ -51,7 +51,6 @@ public class Playerlist extends AppCompatActivity {
         get_video_list();
         for (int i=0; i<listItems.size(); i++){
             Log.d("HTTP", "name is "+ listItems.get(i));
-
         }
         adapter=new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1,
@@ -66,6 +65,7 @@ public class Playerlist extends AppCompatActivity {
         ArrayList<String> video_list = new ArrayList<String>();
         HttpPostRequest get_video = new HttpPostRequest("UTF-8");
             try {
+                Log.d("HTTP", "start to get index");
                 String httpResult = get_video.execute("index").get();
                 response = httpResult;
 
@@ -82,6 +82,7 @@ public class Playerlist extends AppCompatActivity {
                 String id = jsonobject.getString("id");
                 String name = jsonobject.getString("name");
                 video_list.add(name);
+                Log.d("HTTP", "name is "+ name);
             }
         }catch(JSONException e) {
             e.printStackTrace();
@@ -110,9 +111,19 @@ public class Playerlist extends AppCompatActivity {
     }
 
     public void playerActivity(int position){
-        String uri = "http://monterosa.d2.comp.nus.edu.sg:32770/view/"+Integer.toString(position)+"/.mpd";
-        //String uri = "http://119.28.108.175:5000/view/64/b.mpd";
-        Intent intent  = new Intent(this, Player.class);
+        //String uri = "http://monterosa.d2.comp.nus.edu.sg:32770/view/"+Integer.toString(position)+"/.mpd";
+        Intent intent;
+        String uri;
+        if (position == 1) {
+            uri = "http://monterosa.d2.comp.nus.edu.sg:32770/view/100/dash/100.mpd";
+            //String uri = "http://yt-dt.mpd";
+            //Intent intent  = new Intent(this, Player.class);
+            intent = new Intent(this, Player.class);
+        }
+        else {
+            uri = "http://monterosa.d2.comp.nus.edu.sg:32770/view/"+Integer.toString(position+119)+"/hls/"+Integer.toString(position+119)+".m3u8";
+            intent = new Intent(this, HlsPlayer.class);
+        }
         intent.putExtra("uri",uri);
         startActivity(intent);
     }

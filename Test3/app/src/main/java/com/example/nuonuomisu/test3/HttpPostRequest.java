@@ -345,8 +345,7 @@ public class HttpPostRequest extends AsyncTask<String, Void, String> {
             } else {
                 inputLine = "";
             }
-            log.d("HTTP", "CODE: "+conn.getResponseCode());
-
+            log.d("HTTP", "CODE is this : "+conn.getResponseCode());
 
             conn.disconnect();
         } catch (Exception e) {
