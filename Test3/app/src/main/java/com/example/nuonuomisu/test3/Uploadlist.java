@@ -42,7 +42,7 @@ public class Uploadlist extends AppCompatActivity {
     private ListView mListView;
     private String _UserName = "test";
     final String path = "/storage/emulated/0/Android/data/com.example.nuonuomisu.test3/files/";
-    private String _sessionKey = "uubyn2w8wqizmj0g7vfrhkawsdg4opmy";
+    private String _sessionKey = "0kohj1sposfzwsp8wt6v0h6hflkphlua";
     private HttpPostRequest getSessionHTTP;
 
     private TextView countUpload;
@@ -620,6 +620,7 @@ public class Uploadlist extends AppCompatActivity {
 
                 count++;
                 countTime -= 3000;
+                
             }
 
         } else {
