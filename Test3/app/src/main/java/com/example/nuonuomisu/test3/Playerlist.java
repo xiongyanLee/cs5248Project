@@ -115,7 +115,7 @@ public class Playerlist extends AppCompatActivity {
         Intent intent;
         String uri;
         if (position == 1) {
-            uri = "http://monterosa.d2.comp.nus.edu.sg:32770/view/100/dash/100.mpd";
+            uri = "http://monterosa.d2.comp.nus.edu.sg:32770/view/120/dash/120.mpd";
             //String uri = "http://yt-dt.mpd";
             //Intent intent  = new Intent(this, Player.class);
             intent = new Intent(this, Player.class);
